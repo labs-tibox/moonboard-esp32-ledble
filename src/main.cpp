@@ -1,37 +1,11 @@
-/*
-
- BLESerial was written by Ian Archbell of oddWires. It is based on the BLE implementation
- originally created by Neil Kolban and included in the Espressif esp32 distribution.
- This library makes it simple to send and received data that would normally go to or be sent by
- the serial monitor. The interface is very similar so most usage is identical.
-
- To use:
-
-  1. Create an instance of BLESerial
-  2. Make sure you call begin()
-
- In this example we don't redefine bleSerial as Serial as we want to use both the bluetooth serial and the regular serial monitor.
-
- There is a connected() method that enables you to find out whether a bluetooth central manager is connected.
-
- You will need an Ios or Android app on your phone that will connect to the Nordic BLE Serial UART service
- and use its associated characteristics.
-
-We suggest using basic-chat which is a Bluetooth Low Energy App for iOS using Swift originally written by Adafruit.
-This fork is updated for Swift 4 and to easily interface with BLESerial library for esp32 on github at:
-https://github.com/iot-bus/basic-chat
-
-*/
-
 #include "BLESerial.h"
 #include <Arduino.h>
 
 BLESerial bleSerial;
-
-// #define LEDPin 2
 String bleMessage = "";
 bool bleMessageStarted = false;
 bool bleMessageEnded = false;
+bool lightLedAboveHoldEnabled = false;
 
 void setup()
 {
@@ -40,27 +14,106 @@ void setup()
   bleSerial.begin(bleName);
 }
 
+void lightHold(char holdType, int holdPosition)
+{
+
+  Serial.print("Light hold: ");
+  Serial.print(holdType);
+  Serial.print(", ");
+  Serial.print(holdPosition);
+
+  String color = "BLACK";
+
+  switch (holdType)
+  {
+  case 'S':
+    color = "GREEN";
+    break;
+  case 'P':
+    color = "BLUE";
+    break;
+  case 'E':
+    color = "RED";
+    break;
+  }
+  Serial.print(" color = ");
+  Serial.println(color);
+}
+
+void processBleMesage()
+{
+  /*
+   * Example off received messages:
+   *
+   * ~D*l#S69,S4,P82,P8,P57,P49,P28,E54#
+   * l#S69,S4,P93,P81,P49,P28,P10,E54#
+   */
+  Serial.println("--------------------");
+  Serial.print("Message: ");
+  Serial.println(bleMessage);
+
+  int index1 = 0;
+  int index2 = 0;
+
+  while ((index2 = bleMessage.indexOf('#', index1)) != -1)
+  {
+    String splitMessage = bleMessage.substring(index1, index2);
+    index1 = index2 + 1;
+
+    if (splitMessage[0] == 'l')
+    {
+      lightLedAboveHoldEnabled = false;
+      Serial.println("Light led above hold enabled: FALSE");
+    }
+    else if (splitMessage[0] == '~')
+    {
+      lightLedAboveHoldEnabled = true;
+      Serial.println("Light led above hold enabled: TRUE");
+    }
+    else
+    {
+      int index3 = 0;
+      int index4 = 0;
+      while (index4 != -1)
+      {
+        index4 = splitMessage.indexOf(',', index3);
+        String holdMessage = splitMessage.substring(index3, index4);
+        index3 = index4 + 1;
+
+        char holdType = holdMessage[0];
+        int holdPosition = holdMessage.substring(1).toInt();
+        lightHold(holdType, holdPosition);
+      }
+    }
+  }
+}
+
 void loop()
 {
   if (bleSerial.connected())
   {
     while (bleSerial.available())
     {
+      // read first char
       char c = bleSerial.read();
-      if (c == '#')
-      {
-        if (bleMessageStarted)
-          bleMessageEnded = true;
-        else
-          bleMessageStarted = true;
-      }
+
+      // message state
+      if (c == '#' && !bleMessageStarted) // check start delimiter
+        bleMessageStarted = true;
+      else if (c == '#' && bleMessageStarted) // check end delimiter
+        bleMessageEnded = true;
+
+      // construct ble message
       bleMessage.concat(c);
 
-      if (bleMessageEnded) {
-        Serial.println("--------------------");
+      // process message if end detected
+      if (bleMessageEnded)
+      {
+        processBleMesage();
+
+        // reset data
         bleMessageEnded = false;
         bleMessageStarted = false;
-        Serial.println(bleMessage);
         bleMessage = "";
       }
     }
