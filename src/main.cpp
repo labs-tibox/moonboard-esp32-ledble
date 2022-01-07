@@ -1,40 +1,36 @@
 #include "BLESerial.h"
 #include <Arduino.h>
+#include <NeoPixelBus.h>
 
 // constants
 const int c_boardStandard = 0;
 const int c_boardMini = 1;
 
 // custom settings
-int board = c_boardStandard; // Define the board type : mini or standard (to be changed depending of board type used)
-const int c_ledOffset = 1;   // Use every "c_ledOffset" LED on the string
-
-// variables used by the project
+int board = c_boardStandard;   // Define the board type : mini or standard (to be changed depending of board type used)
+const int c_ledOffset = 1;     // Use every "c_ledOffset" LED on the string
+const uint8_t c_pixelPin = 2;  // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
+const bool c_checkLeds = true; // Test the led sysem at boot if true
 
 // variables used inside project
-int ledsByBoard[] = {200, 150}; // Led: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
-int rowsByBoard[] = {18, 12};   // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
-BLESerial bleSerial;
-String bleMessage = "";
-bool bleMessageStarted = false;
-bool bleMessageEnded = false;
+int ledsByBoard[] = {200, 150};                                       // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
+int rowsByBoard[] = {18, 12};                                         // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
+BLESerial bleSerial;                                                  // BLE serial emulation
+String bleMessage = "";                                               // BLE buffer message
+bool bleMessageStarted = false;                                       // Start indicator of problem message
+bool bleMessageEnded = false;                                         // End indicator of problem message
+uint16_t leds = ledsByBoard[board];                                   // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
+NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds, c_pixelPin); // Pixel object to interact withs LEDs
+
+// colors definitions
+RgbColor red(255, 0, 0);      // Red color
+RgbColor green(0, 255, 0);    // Green color
+RgbColor blue(0, 0, 255);     // Blue color
+RgbColor violet(255, 0, 255); // Violet color
+RgbColor black(0);            // Black color
 
 /**
- * @brief Initialization
- *
- */
-void setup()
-{
-  Serial.begin(9600);
-  char bleName[] = "MoonBoard A";
-  bleSerial.begin(bleName);
-  Serial.println("-----------------");
-  Serial.println("Waiting for the mobile app to connect ...");
-  Serial.println("-----------------");
-}
-
-/**
- * @brief Light the LEDs for a Hold
+ * @brief Light the LEDs for a given hold
  *
  * @param holdType Hold type (S,P,E)
  * @param holdPosition Position of the mathcing LED
@@ -42,28 +38,34 @@ void setup()
  */
 void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 {
-
   Serial.print("Light hold: ");
   Serial.print(holdType);
   Serial.print(", ");
   Serial.print(holdPosition);
 
-  String color = "BLACK";
-
+  String colorLabel = "BLACK";
+  RgbColor colorRgb = black;
+  
   switch (holdType)
   {
   case 'S':
-    color = "GREEN";
+    colorLabel = "GREEN";
+    colorRgb = green;
     break;
   case 'P':
-    color = "BLUE";
+    colorLabel = "BLUE";
+    colorRgb = blue;
     break;
   case 'E':
-    color = "RED";
+    colorLabel = "RED";
+    colorRgb = red;
     break;
   }
   Serial.print(" color = ");
-  Serial.print(color);
+  Serial.print(colorLabel);
+
+  // Ligth Hold
+  strip.SetPixelColor(holdPosition * c_ledOffset, colorRgb);
 
   // Find the LED position above the hold
   if (ledAboveHoldEnabled)
@@ -88,6 +90,9 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
       ledAboveHoldPosition = holdPosition + gapLedAbove;
       Serial.print(", led position above : ");
       Serial.print(ledAboveHoldPosition);
+
+      // Light LED above hold
+      strip.SetPixelColor(ledAboveHoldPosition * c_ledOffset, violet);
     }
   }
 
@@ -95,7 +100,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 }
 
 /**
- * @brief process the BLE message to light the matching LEDs
+ * @brief Process the BLE message to light the matching LEDs
  *
  */
 void processBleMesage()
@@ -157,6 +162,76 @@ void processBleMesage()
 }
 
 /**
+ * @brief Turn off all LEDs
+ * 
+ */
+void resetLeds()
+{
+  strip.ClearTo(black);
+  strip.Show();
+}
+
+/**
+ * @brief Check LEDs by cycling through the colors red, green, blue, violet and then turning the LEDs off again
+ * 
+ */
+void checkLeds()
+{
+  if (c_checkLeds)
+  {
+    strip.SetPixelColor(0, red);
+    for (int i = 0; i < leds; i++)
+    {
+      strip.ShiftRight(1 * c_ledOffset);
+      strip.Show();
+      delay(10);
+    }
+    strip.SetPixelColor(0, green);
+    for (int i = 0; i < leds; i++)
+    {
+      strip.ShiftRight(1 * c_ledOffset);
+      strip.Show();
+      delay(10);
+    }
+    strip.SetPixelColor(0, blue);
+    for (int i = 0; i < leds; i++)
+    {
+      strip.ShiftRight(1 * c_ledOffset);
+      strip.Show();
+      delay(10);
+    }
+    strip.SetPixelColor(0, violet);
+    for (int i = 0; i < leds; i++)
+    {
+      strip.ShiftRight(1);
+      strip.Show();
+      delay(10);
+    }
+    resetLeds();
+  }
+}
+
+/**
+ * @brief Initialization
+ *
+ */
+void setup()
+{
+  Serial.begin(9600);
+  char bleName[] = "MoonBoard A";
+  bleSerial.begin(bleName);
+
+  strip.Begin();
+  strip.Show();
+
+  checkLeds();
+
+  Serial.println("-----------------");
+  Serial.println("Waiting for the mobile app to connect ...");
+  Serial.println("-----------------");
+}
+
+/**
  * @brief Infinite loop processed by the chip
  *
  */
@@ -181,6 +256,7 @@ void loop()
       // process message if end detected
       if (bleMessageEnded)
       {
+        resetLeds();
         processBleMesage();
 
         // reset data
