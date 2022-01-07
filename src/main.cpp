@@ -1,6 +1,19 @@
 #include "BLESerial.h"
 #include <Arduino.h>
 
+// constants
+const int c_boardStandard = 0;
+const int c_boardMini = 1;
+
+// custom settings
+int board = c_boardStandard; // Define the board type : mini or standard (to be changed depending of board type used)
+const int c_ledOffset = 1;   // Use every "c_ledOffset" LED on the string
+
+// variables used by the project
+
+// variables used inside project
+int ledsByBoard[] = {200, 150}; // Led: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
+int rowsByBoard[] = {18, 12};   // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
 BLESerial bleSerial;
 String bleMessage = "";
 bool bleMessageStarted = false;
@@ -15,9 +28,9 @@ void setup()
   Serial.begin(9600);
   char bleName[] = "MoonBoard A";
   bleSerial.begin(bleName);
-  Serial.println('-----------------');
-  Serial.println('Waiting for the mobile app to connect ...');
-  Serial.println('-----------------');
+  Serial.println("-----------------");
+  Serial.println("Waiting for the mobile app to connect ...");
+  Serial.println("-----------------");
 }
 
 /**
@@ -50,10 +63,35 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
     break;
   }
   Serial.print(" color = ");
+  Serial.print(color);
 
-  // TODO find the LED position above the hold !
+  // Find the LED position above the hold
+  if (ledAboveHoldEnabled)
+  {
+    int ledAboveHoldPosition = holdPosition;
+    int gapLedAbove = 0;
+    int rows = rowsByBoard[board];
+    int cell = holdPosition + 1;
+    int column = (cell / rows) + 1;
 
-  Serial.println(color);
+    if ((cell % rows == 0) || ((cell - 1) % rows == 0)) // start or end of the column
+      gapLedAbove = 0;
+    else if (column % 2 == 0) // even column
+      gapLedAbove = -1;
+    else if (column % 2 == 1) // odd column
+      gapLedAbove = 1;
+    else
+      gapLedAbove = 9;
+
+    if (gapLedAbove != 0 && gapLedAbove != 9)
+    {
+      ledAboveHoldPosition = holdPosition + gapLedAbove;
+      Serial.print(", led position above : ");
+      Serial.print(ledAboveHoldPosition);
+    }
+  }
+
+  Serial.println();
 }
 
 /**
