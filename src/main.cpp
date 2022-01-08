@@ -7,10 +7,10 @@ const int c_boardStandard = 0;
 const int c_boardMini = 1;
 
 // custom settings
-int board = c_boardStandard;   // Define the board type : mini or standard (to be changed depending of board type used)
-const int c_ledOffset = 1;     // Use every "c_ledOffset" LED on the string
-const uint8_t c_pixelPin = 2;  // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
-const bool c_checkLeds = true; // Test the led sysem at boot if true
+int board = c_boardStandard;    // Define the board type : mini or standard (to be changed depending of board type used)
+const int c_ledOffset = 1;      // Light every "c_ledOffset" LED of the LEDs strip
+const uint8_t c_pixelPin = 2;   // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
+const bool c_checkLeds = false; // Test the led sysem at boot if true
 
 // variables used inside project
 int ledsByBoard[] = {200, 150};                                       // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
@@ -30,6 +30,30 @@ RgbColor violet(255, 0, 255); // Violet color
 RgbColor black(0);            // Black color
 
 /**
+ * @brief Return the string coordinates for a position as "X12" where X is the column letter and 12 the row number
+ *
+ * @param position
+ * @return String
+ */
+String positionToCoordinates(int position)
+{
+  String res = "";
+  int rows = rowsByBoard[board];
+  char columns[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'};
+  int column = (position / rows) + 1;
+  int row = 0;
+  res.concat(columns[column - 1]);
+
+  if (column % 2 == 0) // even column
+    row = rows - (position % rows);
+  else if (column % 2 == 1) // odd column
+    row = (position % rows) + 1;
+
+  res.concat(row);
+  return res;
+}
+
+/**
  * @brief Light the LEDs for a given hold
  *
  * @param holdType Hold type (S,P,E)
@@ -45,7 +69,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 
   String colorLabel = "BLACK";
   RgbColor colorRgb = black;
-  
+
   switch (holdType)
   {
   case 'S':
@@ -63,6 +87,8 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
   }
   Serial.print(" color = ");
   Serial.print(colorLabel);
+  Serial.print(", coordinates: ");
+  Serial.print(positionToCoordinates(holdPosition));
 
   // Ligth Hold
   strip.SetPixelColor(holdPosition * c_ledOffset, colorRgb);
@@ -88,7 +114,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
     if (gapLedAbove != 0 && gapLedAbove != 9)
     {
       ledAboveHoldPosition = holdPosition + gapLedAbove;
-      Serial.print(", led position above : ");
+      Serial.print(", led position above: ");
       Serial.print(ledAboveHoldPosition);
 
       // Light LED above hold
@@ -106,7 +132,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 void processBleMesage()
 {
   /*
-   * Example off received BLE messages:
+   * Example of received BLE messages:
    *    "~D*l#S69,S4,P82,P8,P57,P49,P28,E54#"
    *    "l#S69,S4,P93,P81,P49,P28,P10,E54#"
    *
@@ -163,7 +189,7 @@ void processBleMesage()
 
 /**
  * @brief Turn off all LEDs
- * 
+ *
  */
 void resetLeds()
 {
@@ -173,39 +199,23 @@ void resetLeds()
 
 /**
  * @brief Check LEDs by cycling through the colors red, green, blue, violet and then turning the LEDs off again
- * 
+ *
  */
 void checkLeds()
 {
   if (c_checkLeds)
   {
-    strip.SetPixelColor(0, red);
-    for (int i = 0; i < leds; i++)
+    RgbColor colors[] = {red, green, blue, violet};
+
+    for (int indexColor; indexColor < 3; indexColor++)
     {
-      strip.ShiftRight(1 * c_ledOffset);
-      strip.Show();
-      delay(10);
-    }
-    strip.SetPixelColor(0, green);
-    for (int i = 0; i < leds; i++)
-    {
-      strip.ShiftRight(1 * c_ledOffset);
-      strip.Show();
-      delay(10);
-    }
-    strip.SetPixelColor(0, blue);
-    for (int i = 0; i < leds; i++)
-    {
-      strip.ShiftRight(1 * c_ledOffset);
-      strip.Show();
-      delay(10);
-    }
-    strip.SetPixelColor(0, violet);
-    for (int i = 0; i < leds; i++)
-    {
-      strip.ShiftRight(1);
-      strip.Show();
-      delay(10);
+      strip.SetPixelColor(0, colors[indexColor]);
+      for (int i = 0; i < leds; i++)
+      {
+        strip.ShiftRight(1 * c_ledOffset);
+        strip.Show();
+        delay(10);
+      }
     }
     resetLeds();
   }
@@ -217,7 +227,7 @@ void checkLeds()
  */
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   char bleName[] = "MoonBoard A";
   bleSerial.begin(bleName);
 
@@ -239,7 +249,7 @@ void loop()
 {
   if (bleSerial.connected()) // do something only if BLE connected
   {
-    while (bleSerial.available())
+    while (bleSerial.available()) // loop until no more data available
     {
       // read first char
       char c = bleSerial.read();
@@ -253,17 +263,19 @@ void loop()
       // construct ble message
       bleMessage.concat(c);
 
-      // process message if end detected
+      // process message if at the end of the message
       if (bleMessageEnded)
       {
         resetLeds();
         processBleMesage();
 
-        // reset data
+        // reset BLE data
         bleMessageEnded = false;
         bleMessageStarted = false;
         bleMessage = "";
       }
     }
+    delay(100);
   }
+  delay(100);
 }
