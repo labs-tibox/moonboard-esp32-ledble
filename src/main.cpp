@@ -10,7 +10,7 @@ const int c_boardMini = 1;
 int board = c_boardStandard;    // Define the board type : mini or standard (to be changed depending of board type used)
 const int c_ledOffset = 1;      // Light every "c_ledOffset" LED of the LEDs strip
 const uint8_t c_pixelPin = 2;   // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
-const bool c_checkLeds = false; // Test the led sysem at boot if true
+const bool c_checkLeds = true; // Test the led sysem at boot if true
 
 // variables used inside project
 int ledsByBoard[] = {200, 150};                                       // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
@@ -143,7 +143,7 @@ void processBleMesage()
    * second message part (separator = '#') is the problem string separated by ','
    *    - format: "S12,P34, ... ,E56"
    *    - where S = starting hold, P = intermediate hold, E = ending hold
-   *    - where the following numbers are the LED position in the string
+   *    - where the following numbers are the LED position on the strip
    */
 
   Serial.println("--------------------");
