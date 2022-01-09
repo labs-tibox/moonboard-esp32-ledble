@@ -45,8 +45,9 @@ The most common LED wiring pattern (here for a MoonBoard standard) goes like thi
 
 The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hold A3 is 2 and so on.
 
-<img src="doc/leds_front.jpg" width="400">
-<img src="doc/leds_back.jpg" width="400">
+
+![LEDs](doc/leds_front_back.jpg)
+
 
 ## Good to know
 - Wiring: Usually, blue is GND/negative, brown is positive, yellow/green is data. Please double-check! It might be a good idea to use a resistor (e.g. 330 ohms) in the data line!
