@@ -15,7 +15,7 @@ You need:
 - An appropriate power source
 
 Power consumption: 
-- WS2811 LED seems to draw 20mA for each channel color, so 3 * 20mA = 60mA at full brightness (R: 255, G: 255, B: 255)
+- WS2811 LED seems to draw 20mA for each channel color, so at full brightness (R: 255, G: 255, B: 255) it should be (3 * 20mA) = 60mA
 - Standard Moonboard use 200 LEDs, if all LEDs are turned on white they'll draw (200 * 60mA /1000) * 5v = 60 Watts
 - The max number LEDs turned on is when running the LEDs check at boot. It'll light each LEDs to the colors red, then green, then blue and eventually violet. The max power used is for the violet color at full brightness R and B (255, 0, 255) so aproximatly ( 200 * 40mA / 1000 ) * 5v = 40 Watts. Aiming for a 60 Watts power source should be a good idea. 
 
@@ -45,6 +45,7 @@ The most common LED wiring pattern (here for a MoonBoard standard) goes like thi
 
 The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hold A3 is 2 and so on.
 
+![LEDs](doc/leds_front.jpg)
 ![LEDs](doc/leds_back.jpg)
 
 ## Good to know
