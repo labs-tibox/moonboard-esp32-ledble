@@ -3,24 +3,24 @@
 #include <NeoPixelBus.h>
 
 // constants
-const int c_boardStandard = 0;
-const int c_boardMini = 1;
+const int BOARD_STANDARD = 0;
+const int BOARD_MINI = 1;
 
 // custom settings
-int board = c_boardStandard;    // Define the board type : mini or standard (to be changed depending of board type used)
-const int c_ledOffset = 1;      // Light every "c_ledOffset" LED of the LEDs strip
-const uint8_t c_pixelPin = 2;   // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
-const bool c_checkLeds = true; // Test the led sysem at boot if true
+int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
+const int LED_OFFSET = 1;             // Light every "LED_OFFSET" LED of the LEDs strip
+const uint8_t PIXEL_PIN = 2;          // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
+const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 
 // variables used inside project
-int ledsByBoard[] = {200, 150};                                       // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
-int rowsByBoard[] = {18, 12};                                         // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
-BLESerial bleSerial;                                                  // BLE serial emulation
-String bleMessage = "";                                               // BLE buffer message
-bool bleMessageStarted = false;                                       // Start indicator of problem message
-bool bleMessageEnded = false;                                         // End indicator of problem message
-uint16_t leds = ledsByBoard[board];                                   // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
-NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds, c_pixelPin); // Pixel object to interact withs LEDs
+int ledsByBoard[] = {200, 150};                                      // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
+int rowsByBoard[] = {18, 12};                                        // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
+BLESerial bleSerial;                                                 // BLE serial emulation
+String bleMessage = "";                                              // BLE buffer message
+bool bleMessageStarted = false;                                      // Start indicator of problem message
+bool bleMessageEnded = false;                                        // End indicator of problem message
+uint16_t leds = ledsByBoard[board];                                  // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
+NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds, PIXEL_PIN); // Pixel object to interact withs LEDs
 
 // colors definitions
 RgbColor red(255, 0, 0);      // Red color
@@ -91,7 +91,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
   Serial.print(positionToCoordinates(holdPosition));
 
   // Ligth Hold
-  strip.SetPixelColor(holdPosition * c_ledOffset, colorRgb);
+  strip.SetPixelColor(holdPosition * LED_OFFSET, colorRgb);
 
   // Find the LED position above the hold
   if (ledAboveHoldEnabled)
@@ -118,7 +118,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
       Serial.print(ledAboveHoldPosition);
 
       // Light LED above hold
-      strip.SetPixelColor(ledAboveHoldPosition * c_ledOffset, violet);
+      strip.SetPixelColor(ledAboveHoldPosition * LED_OFFSET, violet);
     }
   }
 
@@ -203,16 +203,16 @@ void resetLeds()
  */
 void checkLeds()
 {
-  if (c_checkLeds)
+  if (CHECK_LEDS_AT_BOOT)
   {
     RgbColor colors[] = {red, green, blue, violet};
 
-    for (int indexColor; indexColor < 3; indexColor++)
+    for (int indexColor = 0; indexColor < 3; indexColor++)
     {
       strip.SetPixelColor(0, colors[indexColor]);
       for (int i = 0; i < leds; i++)
       {
-        strip.ShiftRight(1 * c_ledOffset);
+        strip.ShiftRight(1 * LED_OFFSET);
         strip.Show();
         delay(10);
       }
