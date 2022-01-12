@@ -4,8 +4,7 @@ This project started as a fork of the very good [Moonboard LED on Arduino 33 BLE
 
 This project aims at providing an easy to use solution for building your own MoonBoard LED system. It is both compatible with a normal MoonBoard as well as with the MoonBoard Mini. 
 
-If you want a product that just works, please buy the one offered by Moon Climbing! This is a project which requires some work and still might not work as well as the original. To be absolutely clear: This project is provided as-is. I take absolutely no responsibility that it works as expected. In fact, it might break at any time. You have been warned!
-
+If you want a product that just works, please buy the one offered by Moon Climbing it isn't that expensive for the provided service and will save you a lot off time and energy! This is a project for people having fun building things by themself and knowing the downside of doing it. This project will requires some work and still might not work as well as the original. To be absolutely clear: This project is provided as-is. I take absolutely no responsibility that it works as expected. In fact, it might break at any time. You have been warned!
 
 ## Hardware
 
@@ -30,24 +29,22 @@ Thanks to the two following projects for inspiration and proving this kind of pr
 1. Download and install Visual Studio Code.
 2. Install PlatformIO in Visual Studio Code.
 3. Download and open this project.
-4. Adjust to your needs (LED mapping, LED offset, LED pin, Moonboard type).
-5. Compile and flash to an Arduino Nano 33 BLE.
+4. Adjust to your needs (Moonboard type, LED offset, LED pin).
+5. Compile and flash to an EPS32.
 6. Use the MoonBoard app to connect to the Arduino and show the problems on your board!
 
 ## LED Mapping
 The most common LED wiring pattern (here for a MoonBoard standard) goes like this (front view):
-- start bottom left (A1),
-- up the column (to A18),
-- one column to the right (to B18),
-- all the way down (to B1),
-- one column to the right (to C1),
-- and repeat.
+- Start bottom left (A1),
+- Up the column (to A18),
+- One column to the right (to B18),
+- All the way down (to B1),
+- One column to the right (to C1),
+- And repeat.
 
 The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hold A3 is 2 and so on.
 
-
 ![LEDs](doc/leds_front_back.jpg)
-
 
 ## Good to know
 - Wiring: Usually, blue is GND/negative, brown is positive, yellow/green is data. Please double-check! It might be a good idea to use a resistor (e.g. 330 ohms) in the data line!
