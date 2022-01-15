@@ -18,6 +18,10 @@ Power consumption:
 - Standard Moonboard use 200 LEDs, if all LEDs are turned on white they'll draw (200 * 60mA /1000) * 5v = 60 Watts
 - The max number LEDs turned on is when running the LEDs check at boot. It'll light each LEDs to the colors red, then green, then blue and eventually violet. The max power used is for the violet color at full brightness R and B (255, 0, 255) so aproximatly ( 200 * 40mA / 1000 ) * 5v = 40 Watts. Aiming for a 60 Watts power source should be a good idea. 
 
+Example:
+- [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html)
+- [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html)
+
 ## Thanks
 All the heavy lifting in this project is done by two awesome libraries: [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) (for the LED string) and [BLESerial](https://github.com/iot-bus/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
 
@@ -31,7 +35,7 @@ Thanks to the two following projects for inspiration and proving this kind of pr
 3. Download and open this project.
 4. Adjust to your needs (Moonboard type, LED offset, LED pin).
 5. Compile and flash to an EPS32.
-6. Use the MoonBoard app to connect to the Arduino and show the problems on your board!
+6. Use the MoonBoard app to connect to the ESP32 and show the problems on your board!
 
 ## LED Mapping
 The most common LED wiring pattern (here for a MoonBoard standard) goes like this (front view):
