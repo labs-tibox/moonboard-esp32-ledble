@@ -209,7 +209,7 @@ void checkLeds()
   if (CHECK_LEDS_AT_BOOT)
   {
     RgbColor colors[] = {red, green, blue, violet};
-    int fadeDelay = 100;
+    int fadeDelay = 25;
     for (int indexColor = 0; indexColor <= 3; indexColor++)
     {
       strip.SetPixelColor(0, colors[indexColor]);
@@ -220,6 +220,26 @@ void checkLeds()
         strip.ShiftRight(1 * LED_OFFSET);
         strip.Show();
         delay(fadeDelay);
+      }
+    }
+    resetLeds();
+
+    strip.ClearTo(black);
+    strip.Show();
+
+    // blink each color
+    for (int indexColor = 0; indexColor <= 3; indexColor++)
+    {
+      for (int i = 0; i < 5; i++)
+      {
+        delay(fadeDelay * 6);
+
+        strip.ClearTo(colors[indexColor]);
+        strip.Show();
+        delay(fadeDelay * 6);
+
+        strip.ClearTo(black);
+        strip.Show();
       }
     }
     resetLeds();
