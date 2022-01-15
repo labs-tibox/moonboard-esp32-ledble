@@ -10,7 +10,7 @@ If you want a product that just works, please buy the one offered by Moon Climbi
 
 You need:
 - An ESP32 Devkit development Board
-- A WS2811 LED v5 strings with 25 cm wire length (or the double of strings with 15cm wire length and the LED_OFFSET constant set to 2)
+- 4x (50pcs DC5V WS2811) with 25 cm wire length (or x8 with 15cm wire length and the LED_OFFSET constant set to 2)
 - An appropriate power source
 
 Power consumption: 
@@ -47,6 +47,11 @@ The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hol
 ![LEDs](doc/leds_front_back.jpg)
 
 ## Good to know
-- Wiring: Usually, blue is GND/negative, brown is positive, yellow/green is data. Please double-check! It might be a good idea to use a resistor (e.g. 330 ohms) in the data line!
+- Wiring: Usually, white is GND/negative, red is positive, green is data. Please double-check! It might be a good idea to use a resistor (e.g. 330 ohms) in the data line!
 - Never power the Arduino only when it's connected to the LED string without powering the LED string! This might destroy the first LED!
 - The Arduino does not need to be shutdown, you can simply unplug the power source! This is (at least for me) a big improvement when compared to a Raspberry Pi based solution.
+
+
+## Pictures
+
+![LEDs](doc/wiring.jpg)
