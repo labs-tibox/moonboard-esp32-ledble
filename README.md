@@ -61,3 +61,5 @@ The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hol
 ![LEDs](doc/dry_run.jpg)
 ![LEDs](doc/wiring_global.jpg)
 ![LEDs](doc/wiring_pins.jpg)
+![LEDs](doc/minified_global.jpg)
+![LEDs](doc/minified_closeup.jpg)
