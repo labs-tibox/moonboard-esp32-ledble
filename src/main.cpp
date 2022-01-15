@@ -5,6 +5,7 @@
 // constants
 const int BOARD_STANDARD = 0;
 const int BOARD_MINI = 1;
+#define COLOR_SATURATION 255
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
@@ -23,11 +24,12 @@ uint16_t leds = ledsByBoard[board];                                  // Number o
 NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds, PIXEL_PIN); // Pixel object to interact withs LEDs
 
 // colors definitions
-RgbColor red(255, 0, 0);      // Red color
-RgbColor green(0, 255, 0);    // Green color
-RgbColor blue(0, 0, 255);     // Blue color
-RgbColor violet(255, 0, 255); // Violet color
-RgbColor black(0);            // Black color
+RgbColor red(COLOR_SATURATION, 0, 0);                           // Red color
+RgbColor green(0, COLOR_SATURATION, 0);                         // Green color
+RgbColor blue(0, 0, COLOR_SATURATION);                          // Blue color
+RgbColor violet(COLOR_SATURATION / 2, 0, COLOR_SATURATION / 2); // Violet color
+RgbColor black(0);                                              // Black color
+RgbColor white(COLOR_SATURATION);
 
 /**
  * @brief Return the string coordinates for a position as "X12" where X is the column letter and 12 the row number
@@ -92,6 +94,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 
   // Ligth Hold
   strip.SetPixelColor(holdPosition * LED_OFFSET, colorRgb);
+  strip.Show();
 
   // Find the LED position above the hold
   if (ledAboveHoldEnabled)
@@ -206,15 +209,17 @@ void checkLeds()
   if (CHECK_LEDS_AT_BOOT)
   {
     RgbColor colors[] = {red, green, blue, violet};
-
-    for (int indexColor = 0; indexColor < 3; indexColor++)
+    int fadeDelay = 100;
+    for (int indexColor = 0; indexColor <= 3; indexColor++)
     {
       strip.SetPixelColor(0, colors[indexColor]);
+      strip.Show();
+      delay(fadeDelay);
       for (int i = 0; i < leds; i++)
       {
         strip.ShiftRight(1 * LED_OFFSET);
         strip.Show();
-        delay(10);
+        delay(fadeDelay);
       }
     }
     resetLeds();
