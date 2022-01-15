@@ -1,4 +1,4 @@
-# Moonboar ESP32 LED BLE: A Simple MoonBoard BLE LED System
+# A Simple MoonBoard BLE LED System for ESP32
 
 This project started as a fork of the very good [Moonboard LED on Arduino 33 BLE](https://github.com/FabianRig/ArduinoMoonBoardLED) project in order to add ESP32 chip support. But since then, the project has been almost completely rewritten for the BLE and problem processing parts. On top of that the BLE libraries are incompatible between Nano 33 BLE and ESP32 chips. So another project was born!
 
