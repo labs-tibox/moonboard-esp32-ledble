@@ -10,7 +10,7 @@ If you want a product that just works, please buy the one offered by Moon Climbi
 
 You need:
 - An ESP32 Devkit development Board
-- 4x (50pcs DC5V WS2811) with 25 cm wire length (or x8 with 15cm wire length and the LED_OFFSET constant set to 2)
+- x4 (50pcs DC5V WS2811) with 25 cm wire length (or x8 with 15cm wire length and the LED_OFFSET constant set to 2)
 - An appropriate power source
 
 Power consumption: 
@@ -18,9 +18,9 @@ Power consumption:
 - Standard Moonboard use 200 LEDs, if all LEDs are turned on white they'll draw (200 * 60mA /1000) * 5v = 60 Watts
 - The max number LEDs turned on is when running the LEDs check at boot. It'll light each LEDs to the colors red, then green, then blue and eventually violet. The max power used is for the violet color at full brightness R and B (255, 0, 255) so aproximatly ( 200 * 40mA / 1000 ) * 5v = 40 Watts. Aiming for a 60 Watts power source should be a good idea. 
 
-Example:
-- [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html)
-- [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html)
+Hardware examples:
+- Leds [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html)
+- Power supply [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html)
 
 ## Thanks
 All the heavy lifting in this project is done by two awesome libraries: [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) (for the LED string) and [BLESerial](https://github.com/iot-bus/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
@@ -52,14 +52,15 @@ The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hol
 
 ## Good to know
 - Wiring: Usually, white is GND/negative, red is positive, green is data. Please double-check! It might be a good idea to use a resistor (e.g. 330 ohms) in the data line!
-- Never power the Arduino only when it's connected to the LED string without powering the LED string! This might destroy the first LED!
-- The Arduino does not need to be shutdown, you can simply unplug the power source! This is (at least for me) a big improvement when compared to a Raspberry Pi based solution.
+- Never power the ESP32 only when it's connected to the LED string without powering the LED string! This might destroy the first LED!
+- The ESP32 does not need to be shutdown, you can simply unplug the power source! This is (at least for me) a big improvement when compared to a Raspberry Pi based solution.
 
-
-## Pictures
+## Pictures on a bredboard
 
 ![LEDs](doc/dry_run.jpg)
 ![LEDs](doc/wiring_global.jpg)
 ![LEDs](doc/wiring_pins.jpg)
-![LEDs](doc/minified_global.jpg)
+
+## Pictures soldered directly
+
 ![LEDs](doc/minified_closeup.jpg)

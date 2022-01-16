@@ -300,7 +300,5 @@ void loop()
         bleMessage = "";
       }
     }
-    delay(100);
   }
-  delay(100);
 }
