@@ -9,19 +9,19 @@ const int BOARD_MINI = 1;
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
-const int LED_OFFSET = 1;             // Light every "LED_OFFSET" LED of the LEDs strip
+const int LED_OFFSET = 2;             // Light every "LED_OFFSET" LED of the LEDs strip
 const uint8_t PIXEL_PIN = 2;          // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
 const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 
 // variables used inside project
-int ledsByBoard[] = {200, 150};                                      // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
-int rowsByBoard[] = {18, 12};                                        // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
-BLESerial bleSerial;                                                 // BLE serial emulation
-String bleMessage = "";                                              // BLE buffer message
-bool bleMessageStarted = false;                                      // Start indicator of problem message
-bool bleMessageEnded = false;                                        // End indicator of problem message
-uint16_t leds = ledsByBoard[board];                                  // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
-NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds, PIXEL_PIN); // Pixel object to interact withs LEDs
+int ledsByBoard[] = {200, 150};                                                  // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
+int rowsByBoard[] = {18, 12};                                                    // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
+BLESerial bleSerial;                                                             // BLE serial emulation
+String bleMessage = "";                                                          // BLE buffer message
+bool bleMessageStarted = false;                                                  // Start indicator of problem message
+bool bleMessageEnded = false;                                                    // End indicator of problem message
+uint16_t leds = ledsByBoard[board];                                              // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
+NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds *LED_OFFSET, PIXEL_PIN); // Pixel object to interact withs LEDs
 
 // colors definitions
 RgbColor red(COLOR_SATURATION, 0, 0);                           // Red color
@@ -210,6 +210,8 @@ void checkLeds()
   {
     RgbColor colors[] = {red, green, blue, violet};
     int fadeDelay = 25;
+
+    // light each leds one by one
     for (int indexColor = 0; indexColor <= 3; indexColor++)
     {
       strip.SetPixelColor(0, colors[indexColor]);
@@ -224,25 +226,16 @@ void checkLeds()
     }
     resetLeds();
 
-    strip.ClearTo(black);
-    strip.Show();
-
     // blink each color
     for (int indexColor = 0; indexColor <= 3; indexColor++)
     {
-      for (int i = 0; i < 5; i++)
-      {
-        delay(fadeDelay * 6);
-
-        strip.ClearTo(colors[indexColor]);
-        strip.Show();
-        delay(fadeDelay * 6);
-
-        strip.ClearTo(black);
-        strip.Show();
-      }
+      delay(fadeDelay * 50);
+      for (int indexLed = 0; indexLed < leds; indexLed++)
+        strip.SetPixelColor(indexLed * LED_OFFSET, colors[indexColor]);
+      strip.Show();
+      delay(fadeDelay * 50);
+      resetLeds();
     }
-    resetLeds();
   }
 }
 
