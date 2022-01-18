@@ -22,6 +22,10 @@ Hardware examples:
 - Leds [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html)
 - Power supply [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html)
 
+Power injection:
+- You can't power all the strips LEDs only from the first strip, you'll shortly notice weak ligthness of the LEDs after 2 strips due to voltage drop
+- The solution is to inject power each 50 LEDs (so each strip) or each 100 LEDs (this is my setup) from the power supply
+
 ## Thanks
 All the heavy lifting in this project is done by two awesome libraries: [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) (for the LED string) and [BLESerial](https://github.com/iot-bus/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
 
@@ -55,12 +59,17 @@ The MoonBoard App encodes holds in the same way. Hold A1 is 0, hold A2 is 1, hol
 - Never power the ESP32 only when it's connected to the LED string without powering the LED string! This might destroy the first LED!
 - The ESP32 does not need to be shutdown, you can simply unplug the power source! This is (at least for me) a big improvement when compared to a Raspberry Pi based solution.
 
-## Pictures on a bredboard
+## Pictures 
 
-![LEDs](doc/dry_run.jpg)
+### ESP32 on a bredboard
+
 ![LEDs](doc/wiring_global.jpg)
 ![LEDs](doc/wiring_pins.jpg)
 
-## Pictures soldered directly
+### ESP32 soldered directly
 
 ![LEDs](doc/minified_closeup.jpg)
+
+### ESP32 and all strips LEDs ready for installation
+
+![LEDs](doc/minified_all_leds_strips.jpg)

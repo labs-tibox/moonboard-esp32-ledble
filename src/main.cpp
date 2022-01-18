@@ -16,6 +16,7 @@ const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 // variables used inside project
 int ledsByBoard[] = {200, 150};                                                  // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
 int rowsByBoard[] = {18, 12};                                                    // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
+String namesByBoard[] = {"Moonboard Standard", "Moonboard Mini"};                // Names of moonboards
 BLESerial bleSerial;                                                             // BLE serial emulation
 String bleMessage = "";                                                          // BLE buffer message
 bool bleMessageStarted = false;                                                  // Start indicator of problem message
@@ -255,6 +256,8 @@ void setup()
   checkLeds();
 
   Serial.println("-----------------");
+  Serial.print("Initialization completed for ");
+  Serial.println(namesByBoard[board]);
   Serial.println("Waiting for the mobile app to connect ...");
   Serial.println("-----------------");
 }
