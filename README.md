@@ -6,6 +6,9 @@ This project aims at providing an easy to use solution for building your own Moo
 
 If you want a product that just works, please buy the one offered by Moon Climbing it isn't that expensive for the provided service and will save you a lot off time and energy! This is a project for people having fun building things by themself and knowing the downside of doing it. This project will requires some work and still might not work as well as the original. To be absolutely clear: This project is provided as-is. I take absolutely no responsibility that it works as expected. In fact, it might break at any time. You have been warned!
 
+
+[LEDs test sequence video](doc/leds_setup_sequence.mp4)
+
 ## Hardware
 
 You need:
