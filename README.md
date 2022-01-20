@@ -9,23 +9,23 @@ If you want a product that just works, please buy the one offered by Moon Climbi
 
 ▶️ [LEDs test sequence video](doc/leds_setup_sequence.mp4)
 
-## 🧰 Hardware
+## ℹ️ Hardware requirements
 
 You need:
 - An ESP32 Devkit development Board
 - x4 (50pcs DC5V WS2811) with 25 cm wire length (or x8 with 15cm wire length and the LED_OFFSET constant set to 2)
 - An appropriate power source
 
-Power consumption: 
+⚡ Power consumption: 
 - WS2811 LED seems to draw 20mA for each channel color, so at full brightness (R: 255, G: 255, B: 255) it should be (3 * 20mA) = 60mA
 - Standard Moonboard use 200 LEDs, if all LEDs are turned on white they'll draw (200 * 60mA /1000) * 5v = 60 Watts
 - The max number LEDs turned on is when running the LEDs check at boot. It'll light each LEDs to the colors red, then green, then blue and eventually violet. The max power used is for the violet color at full brightness R and B (255, 0, 255) so aproximatly ( 200 * 40mA / 1000 ) * 5v = 40 Watts. Aiming for a 60 Watts power source should be a good idea. 
 
-Hardware examples:
-- Leds [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html)
-- Power supply [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html)
+🛒 Hardware examples:
+- Leds [WS2811 5V 15cm](https://www.aliexpress.com/item/33044775305.html) (Aliexpress)
+- Power supply [Power supply 5v 12A 60W](https://www.aliexpress.com/item/4000035882551.html) (Aliexpress)
 
-Power injection:
+⚡ Power injection:
 - You can't power all the strips LEDs only from the first strip, you'll shortly notice weak ligthness of the LEDs after 2 strips due to voltage drop
 - The solution is to inject power each 50 LEDs (so each strip) or each 100 LEDs (this is my setup) from the power supply
 
