@@ -29,9 +29,10 @@ const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 // variables used inside project
 int ledsByBoard[] = {200, 150};                                                  // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
 int rowsByBoard[] = {18, 12};                                                    // Rows: usually 12 for MoonBoard Mini, 18 for a standard MoonBoard
-String namesByBoard[] = {"Moonboard Standard", "Moonboard Mini"};                // Names of moonboards
+String namesByBoard[] = {"Standard", "Mini"};                                    // Names of moonboards
 BLESerial bleSerial;                                                             // BLE serial emulation
 String bleMessage = "";                                                          // BLE buffer message
+String problemMessage = "";                                                      // Problem buffer message
 bool bleMessageStarted = false;                                                  // Start indicator of problem message
 bool bleMessageEnded = false;                                                    // End indicator of problem message
 uint16_t leds = ledsByBoard[board];                                              // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
@@ -40,6 +41,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);       
 
 int moonState = 0; // used to set the Moon Logo
 int bleState = 0;  // used to set the BLE logo
+int bleConnected = 0;
+int setupState = 0;
 String oledText[] = {
     "",
     "",
@@ -90,7 +93,7 @@ String positionToCoordinates(int position)
  * @param holdPosition Position of the mathcing LED
  * @param ledAboveHoldEnabled Enable the LED above the hold if possible
  */
-void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
+void neoPixelShowHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 {
     Serial.print("Light hold: ");
     Serial.print(holdType);
@@ -118,7 +121,10 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
     Serial.print(" color = ");
     Serial.print(colorLabel);
     Serial.print(", coordinates: ");
-    Serial.print(positionToCoordinates(holdPosition));
+    String coordinates = positionToCoordinates(holdPosition);
+    Serial.print(coordinates);
+    problemMessage.concat(coordinates);
+    problemMessage.concat(' ');
 
     // Ligth Hold
     strip.SetPixelColor(holdPosition * LED_OFFSET, colorRgb);
@@ -156,9 +162,8 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
     Serial.println();
 }
 
-void drawDisplay()
+void oledUpdate()
 {
-
     // Compute blink values
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillisBle >= 400)
@@ -213,10 +218,10 @@ void drawDisplay()
     display.setCursor(22, 0);
     display.println("MoonBoard");
     display.setCursor(22, 8);
-    display.println("Standard");
+    display.println(namesByBoard[board]);
 
-    // Blutooth logo
-    if (bleState)
+    // Bluetooth logo
+    if ((bleState || bleConnected) && setupState)
         display.drawBitmap(128 - LOGO_WIDTH, 0, logo_bluetooth, LOGO_WIDTH, LOGO_HEIGHT, 1);
 
     //-----------------------------------------------------------------
@@ -233,7 +238,7 @@ void drawDisplay()
     display.display();
 }
 
-void oledPrinln(String str)
+void oledPrintln(String str)
 {
     if (oledTextIndex < 5)
     {
@@ -244,8 +249,8 @@ void oledPrinln(String str)
         for (size_t i = 0; i < oledTextIndex; i++)
             oledText[i] = oledText[i + 1];
     }
-    oledText[oledTextIndex] = str;
-    drawDisplay();
+    oledText[oledTextIndex] = str.substring(0, 20);
+    oledUpdate();
 }
 
 /**
@@ -273,9 +278,10 @@ void processBleMesage()
     Serial.print("Message: ");
     Serial.println(bleMessage);
     Serial.println();
-    oledPrinln("Message received");
-    oledPrinln(bleMessage);
+    oledPrintln("Coordinates:");
+    // oledPrintln(bleMessage);
 
+    problemMessage = " ";
     int indexHashtag1 = 0;
     int indexHashtag2 = 0;
     bool ledAboveHoldEnabled = false;
@@ -304,19 +310,20 @@ void processBleMesage()
                 String holdMessage = splitMessage.substring(indexComma1, indexComma2);
                 indexComma1 = indexComma2 + 1;
 
-                char holdType = holdMessage[0];                         // holdType is the first char of the string
-                int holdPosition = holdMessage.substring(1).toInt();    // holdPosition start at second char of the string
-                lightHold(holdType, holdPosition, ledAboveHoldEnabled); // light the hold on the board
+                char holdType = holdMessage[0];                                // holdType is the first char of the string
+                int holdPosition = holdMessage.substring(1).toInt();           // holdPosition start at second char of the string
+                neoPixelShowHold(holdType, holdPosition, ledAboveHoldEnabled); // light the hold on the board
             }
         }
     }
+    oledPrintln(problemMessage);
 }
 
 /**
  * @brief Turn off all LEDs
  *
  */
-void resetLeds()
+void neoPixelReset()
 {
     strip.ClearTo(black);
     strip.Show();
@@ -326,7 +333,7 @@ void resetLeds()
  * @brief Check LEDs by cycling through the colors red, green, blue, violet and then turning the LEDs off again
  *
  */
-void checkLeds()
+void neoPixelCheck()
 {
     if (CHECK_LEDS_AT_BOOT)
     {
@@ -339,24 +346,36 @@ void checkLeds()
             strip.SetPixelColor(0, colors[indexColor]);
             strip.Show();
             delay(fadeDelay);
+            oledUpdate();
             for (int i = 0; i < leds; i++)
             {
                 strip.ShiftRight(1 * LED_OFFSET);
                 strip.Show();
                 delay(fadeDelay);
+                oledUpdate();
             }
         }
-        resetLeds();
+        neoPixelReset();
 
         // blink each color
         for (int indexColor = 0; indexColor <= 3; indexColor++)
         {
-            delay(fadeDelay * 50);
+            for (size_t i = 0; i < 50; i++)
+            {
+                delay(fadeDelay);
+                oledUpdate();
+            }
+
             for (int indexLed = 0; indexLed < leds; indexLed++)
                 strip.SetPixelColor(indexLed * LED_OFFSET, colors[indexColor]);
             strip.Show();
-            delay(fadeDelay * 50);
-            resetLeds();
+            for (size_t i = 0; i < 50; i++)
+            {
+                delay(fadeDelay);
+                oledUpdate();
+            }
+            oledUpdate();
+            neoPixelReset();
         }
     }
 }
@@ -379,30 +398,30 @@ void setup()
 
     display.cp437(true); // Use full 256 char 'Code Page 437' font
     display.clearDisplay();
-    drawDisplay();
+    oledUpdate();
 
-    oledPrinln("[ok] BLE init");
-
+    oledPrintln("OK| BLE init");
 
     char bleName[] = "MoonBoard A";
     bleSerial.begin(bleName);
 
-
     strip.Begin();
     strip.Show();
-    oledPrinln("[ok] LEDS init");
 
-    oledPrinln("[..] LEDS check");
-    // checkLeds();
-    oledPrinln("[ok] LEDS check");
+    oledPrintln("..| LEDS check");
+    neoPixelCheck();
+    oledText[oledTextIndex] = "OK| LEDS check";
+    oledUpdate();
 
     Serial.println("-----------------");
     Serial.print("Initialization completed for ");
     Serial.println(namesByBoard[board]);
     Serial.println("Waiting for the mobile app to connect ...");
     Serial.println("-----------------");
-    oledPrinln("[ok] Setup done");
-    oledPrinln("Waiting APP");
+    oledPrintln("OK| Setup");
+    oledPrintln("Waiting APP");
+
+    setupState = 1;
 }
 
 /**
@@ -411,14 +430,16 @@ void setup()
  */
 void loop()
 {
-    drawDisplay();
+    bleConnected = bleSerial.connected();
+    oledUpdate();
 
-    if (bleSerial.connected()) // do something only if BLE connected
+    if (bleConnected) // do something only if BLE connected
     {
         while (bleSerial.available()) // loop until no more data available
         {
             // read first char
             char c = bleSerial.read();
+            // Serial.write(c);
 
             // message state
             if (c == '#' && !bleMessageStarted) // check start delimiter
@@ -432,7 +453,9 @@ void loop()
             // process message if at the end of the message
             if (bleMessageEnded)
             {
-                resetLeds();
+                // Serial.write('\n');
+
+                neoPixelReset();
                 processBleMesage();
 
                 // reset BLE data
