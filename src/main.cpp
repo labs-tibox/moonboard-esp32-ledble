@@ -16,9 +16,14 @@ const int BOARD_MINI = 1;
 #define SCREEN_ADDRESS 0x3C // Use I2cScanner to find the address value
 #define LOGO_HEIGHT 14
 #define LOGO_WIDTH 14
-const unsigned char logo_bluetooth[] PROGMEM = {
+
+const unsigned char bitmap_bluetooth[] PROGMEM = {
     0x01, 0x00, 0x01, 0x80, 0x01, 0xc0, 0x19, 0x60, 0x0d, 0x60, 0x07, 0xc0, 0x03, 0x80, 0x03, 0x80,
     0x07, 0xc0, 0x0d, 0x60, 0x19, 0x60, 0x01, 0xc0, 0x01, 0x80, 0x01, 0x00};
+
+const unsigned char bitmap_bulb[] PROGMEM = {
+    0x07, 0x00, 0x18, 0xc0, 0x32, 0x60, 0x24, 0x20, 0x28, 0x20, 0x20, 0x20, 0x20, 0x20, 0x10, 0x40,
+    0x08, 0x80, 0x0f, 0x80, 0x00, 0x00, 0x0f, 0x80, 0x0f, 0x80, 0x07, 0x00};
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
@@ -39,8 +44,9 @@ uint16_t leds = ledsByBoard[board];                                             
 NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds *LED_OFFSET, PIXEL_PIN); // Pixel object to interact withs LEDs
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);        // Oled screen
 
-int moonState = 0; // used to set the Moon Logo
-int bleState = 0;  // used to set the BLE logo
+int moonState = 0;     // used to set the Moon Logo
+int bleState = 0;      // used to set the BLE bitmap
+int neoPixelState = 0; // used to set the Bulb bitmap
 int bleConnected = 0;
 int setupState = 0;
 String oledText[] = {
@@ -95,6 +101,7 @@ String positionToCoordinates(int position)
  */
 void neoPixelShowHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 {
+    neoPixelState = 1;
     Serial.print("Light hold: ");
     Serial.print(holdType);
     Serial.print(", ");
@@ -212,7 +219,7 @@ void oledUpdate()
         display.drawLine(moonX1 + LOGO_HEIGHT / 2, moonY + LOGO_HEIGHT / 2, moonX2 + LOGO_HEIGHT / 2, moonY + LOGO_HEIGHT / 2, SSD1306_BLACK);
     }
 
-    // Text Moonboard and type
+    // Moonboard and type text
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(22, 0);
@@ -220,9 +227,13 @@ void oledUpdate()
     display.setCursor(22, 8);
     display.println(namesByBoard[board]);
 
-    // Bluetooth logo
+    // Bluetooth bitmap
     if ((bleState || bleConnected) && setupState)
-        display.drawBitmap(128 - LOGO_WIDTH, 0, logo_bluetooth, LOGO_WIDTH, LOGO_HEIGHT, 1);
+        display.drawBitmap(128 - LOGO_WIDTH, 0, bitmap_bluetooth, LOGO_WIDTH, LOGO_HEIGHT, 1);
+
+    // Bulb bitmap
+    if (neoPixelState)
+        display.drawBitmap(128 - LOGO_WIDTH - LOGO_WIDTH, 0, bitmap_bulb, LOGO_WIDTH, LOGO_WIDTH, 1);
 
     //-----------------------------------------------------------------
     // Text area
@@ -327,6 +338,7 @@ void neoPixelReset()
 {
     strip.ClearTo(black);
     strip.Show();
+    neoPixelState = 0;
 }
 
 /**
@@ -343,6 +355,7 @@ void neoPixelCheck()
         // light each leds one by one
         for (int indexColor = 0; indexColor <= 3; indexColor++)
         {
+            neoPixelState = 1;
             strip.SetPixelColor(0, colors[indexColor]);
             strip.Show();
             delay(fadeDelay);
@@ -356,6 +369,7 @@ void neoPixelCheck()
             }
         }
         neoPixelReset();
+        oledUpdate();
 
         // blink each color
         for (int indexColor = 0; indexColor <= 3; indexColor++)
@@ -365,6 +379,7 @@ void neoPixelCheck()
                 delay(fadeDelay);
                 oledUpdate();
             }
+            neoPixelState = 1;
 
             for (int indexLed = 0; indexLed < leds; indexLed++)
                 strip.SetPixelColor(indexLed * LED_OFFSET, colors[indexColor]);
@@ -374,8 +389,8 @@ void neoPixelCheck()
                 delay(fadeDelay);
                 oledUpdate();
             }
-            oledUpdate();
             neoPixelReset();
+            oledUpdate();
         }
     }
 }

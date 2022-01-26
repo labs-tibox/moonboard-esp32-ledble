@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   aria-hidden="true"
+   focusable="false"
+   data-prefix="fab"
+   data-icon="bluetooth-b"
+   class="svg-inline--fa fa-bluetooth-b"
+   role="img"
+   viewBox="0 0 320 512"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="bluetooth-b-brands.svg"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="1.65625"
+     inkscape:cx="155.77358"
+     inkscape:cy="256.30189"
+     inkscape:window-width="1920"
+     inkscape:window-height="1029"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     fill="currentColor"
+     d="M196.5 260l92.63-103.3L143.1 0v206.3l-86.11-86.11-31.41 31.41 108.1 108.4L25.61 368.4l31.41 31.41 86.11-86.11L145.8 512l148.6-148.6-97.91-103.3zm40.86-102.1l-49.98 49.98-.338-100.3 50.31 50.32zM187.4 313l49.98 49.98-50.31 50.32 .338-100.3z"
+     id="path2"
+     style="fill:#ffcc00" />
+</svg>
