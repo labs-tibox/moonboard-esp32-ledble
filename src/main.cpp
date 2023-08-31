@@ -5,11 +5,11 @@
 // constants
 const int BOARD_STANDARD = 0;
 const int BOARD_MINI = 1;
-#define COLOR_SATURATION 255
+#define COLOR_SATURATION 204
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
-const int LED_OFFSET = 2;             // Light every "LED_OFFSET" LED of the LEDs strip
+const int LED_OFFSET = 1;             // Light every "LED_OFFSET" LED of the LEDs strip
 const uint8_t PIXEL_PIN = 2;          // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
 const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 
@@ -21,6 +21,10 @@ BLESerial bleSerial;                                                            
 String bleMessage = "";                                                          // BLE buffer message
 bool bleMessageStarted = false;                                                  // Start indicator of problem message
 bool bleMessageEnded = false;                                                    // End indicator of problem message
+String confMessage = "";                                                         // BLE buffer conf message
+bool confMessageStarted = false;                                                 // Start indicator of conf message
+bool confMessageEnded = false;                                                   // End indicator of conf message
+bool ledAboveHoldEnabled = false;                                                // Enable the LED above the hold if possible
 uint16_t leds = ledsByBoard[board];                                              // Number of LEDs in the LED strip (usually 150 for MoonBoard Mini, 200 for a standard MoonBoard)
 NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds *LED_OFFSET, PIXEL_PIN); // Pixel object to interact withs LEDs
 
@@ -61,9 +65,8 @@ String positionToCoordinates(int position)
  *
  * @param holdType Hold type (S,P,E)
  * @param holdPosition Position of the mathcing LED
- * @param ledAboveHoldEnabled Enable the LED above the hold if possible
  */
-void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
+void lightHold(char holdType, int holdPosition)
 {
   Serial.print("Light hold: ");
   Serial.print(holdType);
@@ -95,7 +98,6 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
 
   // Ligth Hold
   strip.SetPixelColor(holdPosition * LED_OFFSET, colorRgb);
-  strip.Show();
 
   // Find the LED position above the hold
   if (ledAboveHoldEnabled)
@@ -127,68 +129,7 @@ void lightHold(char holdType, int holdPosition, bool ledAboveHoldEnabled)
   }
 
   Serial.println();
-}
-
-/**
- * @brief Process the BLE message to light the matching LEDs
- *
- */
-void processBleMesage()
-{
-  /*
-   * Example of received BLE messages:
-   *    "~D*l#S69,S4,P82,P8,P57,P49,P28,E54#"
-   *    "l#S69,S4,P93,P81,P49,P28,P10,E54#"
-   *
-   * first message part (separator = '#')
-   *    - "~D*1" : light 2 LEDs, the selected hold and the LED above it
-   *    - "1" : light the the selected hold
-   *
-   * second message part (separator = '#') is the problem string separated by ','
-   *    - format: "S12,P34, ... ,E56"
-   *    - where S = starting hold, P = intermediate hold, E = ending hold
-   *    - where the following numbers are the LED position on the strip
-   */
-
-  Serial.println("--------------------");
-  Serial.print("Message: ");
-  Serial.println(bleMessage);
-  Serial.println();
-
-  int indexHashtag1 = 0;
-  int indexHashtag2 = 0;
-  bool ledAboveHoldEnabled = false;
-
-  // explode the message with char '#'
-  while ((indexHashtag2 = bleMessage.indexOf('#', indexHashtag1)) != -1)
-  {
-    String splitMessage = bleMessage.substring(indexHashtag1, indexHashtag2);
-    indexHashtag1 = indexHashtag2 + 1;
-
-    if (splitMessage[0] == 'l') // process conf part of the ble message
-    {
-      ledAboveHoldEnabled = false;
-    }
-    else if (splitMessage[0] == '~') // process conf part of the ble message
-    {
-      ledAboveHoldEnabled = true;
-    }
-    else // process the problem part of the ble message
-    {
-      int indexComma1 = 0;
-      int indexComma2 = 0;
-      while (indexComma2 != -1)
-      {
-        indexComma2 = splitMessage.indexOf(',', indexComma1);
-        String holdMessage = splitMessage.substring(indexComma1, indexComma2);
-        indexComma1 = indexComma2 + 1;
-
-        char holdType = holdMessage[0];                         // holdType is the first char of the string
-        int holdPosition = holdMessage.substring(1).toInt();    // holdPosition start at second char of the string
-        lightHold(holdType, holdPosition, ledAboveHoldEnabled); // light the hold on the board
-      }
-    }
-  }
+  strip.Show();
 }
 
 /**
@@ -212,21 +153,6 @@ void checkLeds()
     RgbColor colors[] = {red, green, blue, violet};
     int fadeDelay = 25;
 
-    // light each leds one by one
-    for (int indexColor = 0; indexColor <= 3; indexColor++)
-    {
-      strip.SetPixelColor(0, colors[indexColor]);
-      strip.Show();
-      delay(fadeDelay);
-      for (int i = 0; i < leds; i++)
-      {
-        strip.ShiftRight(1 * LED_OFFSET);
-        strip.Show();
-        delay(fadeDelay);
-      }
-    }
-    resetLeds();
-
     // blink each color
     for (int indexColor = 0; indexColor <= 3; indexColor++)
     {
@@ -238,6 +164,70 @@ void checkLeds()
       resetLeds();
     }
   }
+}
+
+/*
+ * Example of received BLE messages:
+ *    "~Z*"
+ *    "~D*l#S69,S4,P82,P8,P57,P49,P28,E54#"
+ *    "l#S69,S4,P93,P81,P49,P28,P10,E54#"
+ *
+ * first message part (separator = '#')
+ *    - "~D*1" : light 2 LEDs, the selected hold and the LED above it
+ *    - "1" : light the the selected hold
+ *
+ * second message part (separator = '#') is the problem string separated by ','
+ *    - format: "S12,P34, ... ,E56"
+ *    - where S = starting hold, P = intermediate hold, E = ending hold
+ *    - where the following numbers are the LED position on the strip
+ */
+
+/**
+ * @brief Process the configuration message
+ *
+ */
+void processConfMessage()
+{
+  Serial.println("-----------------");
+  Serial.print("Configuration message: ");
+  Serial.println(confMessage);
+
+  if (confMessage.indexOf("~D*") != -1)
+  {
+    Serial.println("Display an additional led above each hold");
+    ledAboveHoldEnabled = true;
+  }
+
+  if (confMessage.indexOf("~Z*") != -1)
+  {
+    Serial.println("Reset leds");
+    resetLeds();
+  }
+}
+
+/**
+ * @brief Process the BLE message to light the matching LEDs
+ *
+ */
+void processBleMessage()
+{
+  Serial.println("-----------------");
+  Serial.print("Problem message: ");
+  Serial.println(bleMessage);
+
+  int indexComma1 = 0;
+  int indexComma2 = 0;
+  while (indexComma2 != -1)
+  {
+    indexComma2 = bleMessage.indexOf(',', indexComma1);
+    String holdMessage = bleMessage.substring(indexComma1, indexComma2);
+    indexComma1 = indexComma2 + 1;
+
+    char holdType = holdMessage[0];                      // holdType is the first char of the string
+    int holdPosition = holdMessage.substring(1).toInt(); // holdPosition start at second char of the string
+    lightHold(holdType, holdPosition);                   // light the hold on the board
+  }
+  ledAboveHoldEnabled = false;
 }
 
 /**
@@ -268,32 +258,57 @@ void setup()
  */
 void loop()
 {
-  if (bleSerial.connected()) // do something only if BLE connected
+  if (bleSerial.connected())
   {
-    while (bleSerial.available()) // loop until no more data available
+    while (bleSerial.available())
     {
-      // read first char
       char c = bleSerial.read();
 
-      // message state
-      if (c == '#' && !bleMessageStarted) // check start delimiter
-        bleMessageStarted = true;
-      else if (c == '#' && bleMessageStarted) // check end delimiter
-        bleMessageEnded = true;
+      switch (c)
+      {
+      case '~':
+        confMessageStarted = true;
+        break;
+      case '*':
+        confMessageEnded = true;
+        break;
+      case '#':
+        if (!bleMessageStarted)
+        {
+          bleMessageStarted = true;
+        }
+        else
+        {
+          bleMessageEnded = true;
+        }
+        break;
+      default:
+        break;
+      }
 
-      // construct ble message
-      bleMessage.concat(c);
+      if (confMessageStarted)
+      {
+        confMessage.concat(c);
+      }
+      if (confMessageEnded)
+      {
+        processConfMessage();
+        confMessage = "";
+        confMessageStarted = false;
+        confMessageEnded = false;
+      }
 
-      // process message if at the end of the message
+      if (bleMessageStarted && (c != '#'))
+      {
+        bleMessage.concat(c);
+      }
       if (bleMessageEnded)
       {
         resetLeds();
-        processBleMesage();
-
-        // reset BLE data
-        bleMessageEnded = false;
-        bleMessageStarted = false;
+        processBleMessage();
         bleMessage = "";
+        bleMessageStarted = false;
+        bleMessageEnded = false;
       }
     }
   }
