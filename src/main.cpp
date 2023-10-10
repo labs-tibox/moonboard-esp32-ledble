@@ -5,7 +5,7 @@
 // constants
 const int BOARD_STANDARD = 0;
 const int BOARD_MINI = 1;
-#define COLOR_SATURATION 204
+#define BRIGHTNESS 0.8
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
@@ -29,12 +29,16 @@ uint16_t leds = ledsByBoard[board];                                             
 NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> strip(leds *LED_OFFSET, PIXEL_PIN); // Pixel object to interact withs LEDs
 
 // colors definitions
-RgbColor red(COLOR_SATURATION, 0, 0);                           // Red color
-RgbColor green(0, COLOR_SATURATION, 0);                         // Green color
-RgbColor blue(0, 0, COLOR_SATURATION);                          // Blue color
-RgbColor violet(COLOR_SATURATION / 2, 0, COLOR_SATURATION / 2); // Violet color
-RgbColor black(0);                                              // Black color
-RgbColor white(COLOR_SATURATION);
+RgbColor red(255 * BRIGHTNESS, 0, 0);
+RgbColor green(0, 255 * BRIGHTNESS, 0);
+RgbColor blue(0, 0, 255 * BRIGHTNESS);
+RgbColor cyan(0, 128 * BRIGHTNESS, 128 * BRIGHTNESS);
+RgbColor magenta(128 * BRIGHTNESS, 0, 128 * BRIGHTNESS);
+RgbColor yellow(128 * BRIGHTNESS, 128 * BRIGHTNESS, 0);
+RgbColor pink(120 * BRIGHTNESS, 50 * BRIGHTNESS, 85 * BRIGHTNESS);
+RgbColor purple(105 * BRIGHTNESS, 0, 150 * BRIGHTNESS);
+RgbColor black(0);
+RgbColor white(255);
 
 /**
  * @brief Return the string coordinates for a position as "X12" where X is the column letter and 12 the row number
@@ -78,17 +82,33 @@ void lightHold(char holdType, int holdPosition)
 
   switch (holdType)
   {
-  case 'S':
-    colorLabel = "GREEN";
-    colorRgb = green;
+  case 'E':
+    colorLabel = "RED";
+    colorRgb = red;
+    break;
+  case 'F':
+    colorLabel = "CYAN";
+    colorRgb = cyan;
+    break;
+  case 'L':
+    colorLabel = "PURPLE";
+    colorRgb = purple;
+    break;
+  case 'M':
+    colorLabel = "PINK";
+    colorRgb = pink;
     break;
   case 'P':
     colorLabel = "BLUE";
     colorRgb = blue;
     break;
-  case 'E':
-    colorLabel = "RED";
-    colorRgb = red;
+  case 'R':
+    colorLabel = "BLUE";
+    colorRgb = blue;
+    break;
+  case 'S':
+    colorLabel = "GREEN";
+    colorRgb = green;
     break;
   }
   Serial.print(" color = ");
@@ -124,7 +144,7 @@ void lightHold(char holdType, int holdPosition)
       Serial.print(ledAboveHoldPosition);
 
       // Light LED above hold
-      strip.SetPixelColor(ledAboveHoldPosition * LED_OFFSET, violet);
+      strip.SetPixelColor(ledAboveHoldPosition * LED_OFFSET, yellow);
     }
   }
 
@@ -143,18 +163,18 @@ void resetLeds()
 }
 
 /**
- * @brief Check LEDs by cycling through the colors red, green, blue, violet and then turning the LEDs off again
+ * @brief Check LEDs by cycling through the colors red, green, blue and then turning the LEDs off again
  *
  */
 void checkLeds()
 {
   if (CHECK_LEDS_AT_BOOT)
   {
-    RgbColor colors[] = {red, green, blue, violet};
+    RgbColor colors[] = {red, green, blue};
     int fadeDelay = 25;
 
     // blink each color
-    for (int indexColor = 0; indexColor <= 3; indexColor++)
+    for (int indexColor = 0; indexColor < sizeof(colors)/sizeof(RgbColor); indexColor++)
     {
       delay(fadeDelay * 50);
       for (int indexLed = 0; indexLed < leds; indexLed++)
@@ -171,6 +191,7 @@ void checkLeds()
  *    "~Z*"
  *    "~D*l#S69,S4,P82,P8,P57,P49,P28,E54#"
  *    "l#S69,S4,P93,P81,P49,P28,P10,E54#"
+ *    "~D*l#S103,E161,L115,R134,F150,M133#""
  *
  * first message part (separator = '#')
  *    - "~D*1" : light 2 LEDs, the selected hold and the LED above it
@@ -179,6 +200,7 @@ void checkLeds()
  * second message part (separator = '#') is the problem string separated by ','
  *    - format: "S12,P34, ... ,E56"
  *    - where S = starting hold, P = intermediate hold, E = ending hold
+ *    - L = left, R = right, M = match, F = foot
  *    - where the following numbers are the LED position on the strip
  */
 
