@@ -5,11 +5,11 @@
 // constants
 const int BOARD_STANDARD = 0;
 const int BOARD_MINI = 1;
-#define BRIGHTNESS 0.8
+const float BRIGHTNESS = 0.8;
 
 // custom settings
 int board = BOARD_STANDARD;           // Define the board type : mini or standard (to be changed depending of board type used)
-const int LED_OFFSET = 1;             // Light every "LED_OFFSET" LED of the LEDs strip
+const int LED_OFFSET = 2;             // Light every "LED_OFFSET" LED of the LEDs strip
 const uint8_t PIXEL_PIN = 2;          // Use pin D2 of Arduino Nano 33 BLE (to be changed depending of your pin number used)
 const bool CHECK_LEDS_AT_BOOT = true; // Test the led sysem at boot if true
 
@@ -174,7 +174,7 @@ void checkLeds()
     int fadeDelay = 25;
 
     // blink each color
-    for (int indexColor = 0; indexColor < sizeof(colors)/sizeof(RgbColor); indexColor++)
+    for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(RgbColor); indexColor++)
     {
       delay(fadeDelay * 50);
       for (int indexLed = 0; indexLed < leds; indexLed++)
