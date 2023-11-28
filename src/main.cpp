@@ -28,7 +28,7 @@ const int NEOPIXEL_LED_OFFSET = 2;        // Light every "NEOPIXEL_LED_OFFSET" L
 const uint8_t NEOPIXEL_PIN = 2;           // Use pin D2 (to be changed depending of your pin number used)
 const bool NEOPIXEL_CHECK_AT_BOOT = true; // Test the neo pixel led sysem at boot if true
 const float NEOPLIXEL_BRIGHTNESS = 0.8;   // Neopixel brightness setting (0 to 1)
-char bleName[] = "MoonBoard Okeypis";     // Bluetooth name displayed by the esp32 BLE
+char bleName[] = "MoonBoard A";           // Bluetooth name displayed by the esp32 BLE
 
 // variables used inside project
 int ledsByBoard[] = {200, 150};                                                                 // LEDs: usually 150 for MoonBoard Mini, 200 for a standard MoonBoard
