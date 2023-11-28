@@ -29,6 +29,40 @@ You need:
 - You can't power all the strips LEDs only from the first strip, you'll shortly notice weak ligthness of the LEDs after 2 strips due to voltage drop
 - The solution is to inject power each 50 LEDs (so each strip) or each 100 LEDs (this is my setup) from the power supply
 
+
+## 📺 Screen (optional)
+
+### Hardware
+ - Oled 0.96
+ - Resolution: 128x64
+ - Type: SSD1306
+
+### Pins wiring
+  -  (D)21 => SDA
+  -  (D)22 => SCL
+  -  3v3 => VCC
+  -  GND => GND
+
+### Settings:
+  - The screen used had the SCREEN_ADDRESS = 0x3C
+  - Use the following i2cScanner sktech here: https://playground.arduino.cc/Main/I2cScanner/
+
+### Bitmap conversion
+
+Just use https://javl.github.io/image2cpp/
+ - Invert image colors = true
+ - Code output format = Arduino code
+
+### Oled sources
+ - https://projetsdiy.fr/ssd1306-mini-ecran-oled-i2c-128x64-arduino/
+ - https://randomnerdtutorials.com/esp32-ssd1306-oled-display-arduino-ide/
+
+
+## 🔌 Wiring
+
+![Schematic](doc/sketch_bb.png)
+
+
 ## 🙏 Thanks
 All the heavy lifting in this project is done by two awesome libraries: [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) (for the LED string) and [BLESerial](https://github.com/iot-bus/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
 
@@ -41,8 +75,8 @@ Thanks to the two following projects for inspiration and proving this kind of pr
 2. Install PlatformIO in Visual Studio Code.
 3. Download and open this project.
 4. Adjust to your needs (Moonboard type, LED offset, LED pin).
-5. Compile and flash to an EPS32.
-6. Use the MoonBoard app to connect to the ESP32 and show the problems on your board!
+2. Compile and flash to an EPS32.
+3. Use the MoonBoard app to connect to the ESP32 and show the problems on your board!
 
 ## 🚦 LED Mapping
 The most common LED wiring pattern (here for a MoonBoard standard) goes like this (front view):
