@@ -53,7 +53,7 @@ Just use https://javl.github.io/image2cpp/
  - Invert image colors = true
  - Code output format = Arduino code
 
-### Oled sources
+### Documention
  - https://projetsdiy.fr/ssd1306-mini-ecran-oled-i2c-128x64-arduino/
  - https://randomnerdtutorials.com/esp32-ssd1306-oled-display-arduino-ide/
 
