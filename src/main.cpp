@@ -451,7 +451,7 @@ void setup()
     bleSerial.begin(bleName);
 
     // NeoPixel setup
-    FastLED.addLeds<NEOPIXEL, NEOPIXEL_PIN>(neoPixel, ledsCount);
+    FastLED.addLeds<NEOPIXEL, NEOPIXEL_PIN>(leds, ledsCount);
     FastLED.setBrightness(NEOPIXEL_BRIGHTNESS * 255);
     FastLED.clear();
     FastLED.show();
