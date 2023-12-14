@@ -74,7 +74,7 @@ Thanks to the two following projects for inspiration and proving this kind of pr
 1. Download and install Visual Studio Code.
 2. Install PlatformIO in Visual Studio Code.
 3. Download and open this project.
-4. Adjust to your needs (Moonboard type, LED offset, LED pin).
+4. Adjust to your needs (Moonboard type, LED offset, LED pin) in the `config.h` file.
 2. Compile and flash to an EPS32.
 3. Use the MoonBoard app to connect to the ESP32 and show the problems on your board!
 
