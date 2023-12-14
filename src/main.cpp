@@ -34,7 +34,7 @@ int oledTextIndex = -1;                                            // Current in
 unsigned long previousMillisBle = 0;                               // Last time BLE bitmap was updated
 unsigned long previousMillisMoon = 0;                              // Last time Moon logo was updated
 Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET); // Oled screen object
-CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];
+CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];                        // Neopixel leds use by FastLED
 
 // colors definitions
 CRGB red = CRGB(255, 0, 0);
@@ -45,8 +45,8 @@ CRGB magenta = CRGB(128, 0, 128);
 CRGB yellow = CRGB(128, 128, 0);
 CRGB pink = CRGB(120, 50, 85);
 CRGB purple = CRGB(105, 0, 150);
-CRGB black = CRGB(0);
-CRGB white = CRGB(255);
+CRGB black = CRGB(0, 0, 0);
+CRGB white = CRGB(255, 255, 255);
 
 /**
  * @brief Return the string coordinates for a position as "X12" where X is the column letter and 12 the row number
@@ -157,10 +157,8 @@ void neoPixelShowHold(char holdType, int holdPosition)
             Serial.print(ledAboveHoldPosition);
 
             // Light LED above hold
-            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET] = yellow;
-            // leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET] = white;
-            // leds[0].setRGB(255, 255, 255); // LED 0 full brightness white
-            // leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET].subtractFromRGB(0.25 * 255);
+            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET] = white;
+            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET].subtractFromRGB((1 - NEOPIXEL_BRIGHTNESS_ABOVE_HOLD) * 255);
         }
     }
 
