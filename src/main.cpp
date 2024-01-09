@@ -15,39 +15,38 @@ const unsigned char BITMAP_BULB[] PROGMEM = {
     0x08, 0x80, 0x0f, 0x80, 0x00, 0x00, 0x0f, 0x80, 0x0f, 0x80, 0x07, 0x00};
 
 // variables used inside project
-String namesByBoard[] = {"Standard", "Mini"};                                                        // Names of moonboards
-BLESerial bleSerial;                                                                                 // BLE serial emulation
-String problemMessage = "";                                                                          // BLE buffer message
-String humanReadableProblemMessage = "";                                                             // Problem human readable message
-bool problemMessageStarted = false;                                                                  // Start indicator of problem message
-bool problemMessageEnded = false;                                                                    // End indicator of problem message
-String confMessage = "";                                                                             // BLE buffer conf message
-bool confMessageStarted = false;                                                                     // Start indicator of conf message
-bool confMessageEnded = false;                                                                       // End indicator of conf message
-bool ledAboveHoldEnabled = false;                                                                    // Enable the LED above the hold if possible
-int bitmapMoonState = 0;                                                                             // Used to set the Moon Logo
-bool bitmapBleState = false;                                                                         // Used to set the BLE bitmap
-bool bitmapNeoPixelState = false;                                                                    // Used to set the Bulb bitmap
-bool bleConnected = false;                                                                           // Ble connected state
-bool setupState = false;                                                                             // Setup in progress
-String oledText[] = {"", "", "", "", "", ""};                                                        // Oled text buffer
-int oledTextIndex = -1;                                                                              // Current index of oled text buffer
-unsigned long previousMillisBle = 0;                                                                 // Last time BLE bitmap was updated
-unsigned long previousMillisMoon = 0;                                                                // Last time Moon logo was updated
-Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET);                                   // Oled screen object
-NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> neoPixel(ledsCount *NEOPIXEL_LED_OFFSET, NEOPIXEL_PIN); // Pixel object to interact withs LEDs
+BLESerial bleSerial;                                               // BLE serial emulation
+String problemMessage = "";                                        // BLE buffer message
+String humanReadableProblemMessage = "";                           // Problem human readable message
+bool problemMessageStarted = false;                                // Start indicator of problem message
+bool problemMessageEnded = false;                                  // End indicator of problem message
+String confMessage = "";                                           // BLE buffer conf message
+bool confMessageStarted = false;                                   // Start indicator of conf message
+bool confMessageEnded = false;                                     // End indicator of conf message
+bool ledAboveHoldEnabled = false;                                  // Enable the LED above the hold if possible
+int bitmapMoonState = 0;                                           // Used to set the Moon Logo
+bool bitmapBleState = false;                                       // Used to set the BLE bitmap
+bool bitmapNeoPixelState = false;                                  // Used to set the Bulb bitmap
+bool bleConnected = false;                                         // Ble connected state
+bool setupState = false;                                           // Setup in progress
+String oledText[] = {"", "", "", "", "", ""};                      // Oled text buffer
+int oledTextIndex = -1;                                            // Current index of oled text buffer
+unsigned long previousMillisBle = 0;                               // Last time BLE bitmap was updated
+unsigned long previousMillisMoon = 0;                              // Last time Moon logo was updated
+Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET); // Oled screen object
+CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];                        // Neopixel leds use by FastLED
 
 // colors definitions
-RgbColor red(255 * NEOPIXEL_BRIGHTNESS, 0, 0);
-RgbColor green(0, 255 * NEOPIXEL_BRIGHTNESS, 0);
-RgbColor blue(0, 0, 255 * NEOPIXEL_BRIGHTNESS);
-RgbColor cyan(0, 128 * NEOPIXEL_BRIGHTNESS, 128 * NEOPIXEL_BRIGHTNESS);
-RgbColor magenta(128 * NEOPIXEL_BRIGHTNESS, 0, 128 * NEOPIXEL_BRIGHTNESS);
-RgbColor yellow(128 * NEOPIXEL_BRIGHTNESS_ABOVE_HOLD, 128 * NEOPIXEL_BRIGHTNESS_ABOVE_HOLD, 0);
-RgbColor pink(120 * NEOPIXEL_BRIGHTNESS, 50 * NEOPIXEL_BRIGHTNESS, 85 * NEOPIXEL_BRIGHTNESS);
-RgbColor purple(105 * NEOPIXEL_BRIGHTNESS, 0, 150 * NEOPIXEL_BRIGHTNESS);
-RgbColor black(0);
-RgbColor white(255 * NEOPIXEL_BRIGHTNESS_ABOVE_HOLD);
+CRGB red = CRGB(255, 0, 0);
+CRGB green = CRGB(0, 255, 0);
+CRGB blue = CRGB(0, 0, 255);
+CRGB cyan = CRGB(0, 128, 128);
+CRGB magenta = CRGB(128, 0, 128);
+CRGB yellow = CRGB(128, 128, 0);
+CRGB pink = CRGB(120, 50, 85);
+CRGB purple = CRGB(105, 0, 150);
+CRGB black = CRGB(0, 0, 0);
+CRGB white = CRGB(255, 255, 255);
 
 /**
  * @brief Return the string coordinates for a position as "X12" where X is the column letter and 12 the row number
@@ -78,6 +77,7 @@ String positionToCoordinates(int position)
  *
  * @param holdType Hold type (S,P,E)
  * @param holdPosition Position of the mathcing LED
+ * @param ledAboveHoldEnabled Enable the LED above the hold if possible
  */
 void neoPixelShowHold(char holdType, int holdPosition)
 {
@@ -88,7 +88,7 @@ void neoPixelShowHold(char holdType, int holdPosition)
     Serial.print(holdPosition);
 
     String colorLabel = "BLACK";
-    RgbColor colorRgb = black;
+    CRGB colorRgb = black;
 
     switch (holdType)
     {
@@ -130,7 +130,7 @@ void neoPixelShowHold(char holdType, int holdPosition)
     humanReadableProblemMessage.concat(' ');
 
     // Ligth Hold
-    neoPixel.SetPixelColor(holdPosition * NEOPIXEL_LED_OFFSET, colorRgb);
+    leds[holdPosition * NEOPIXEL_LED_OFFSET] = colorRgb;
 
     // Find the LED position above the hold
     if (ledAboveHoldEnabled)
@@ -157,12 +157,13 @@ void neoPixelShowHold(char holdType, int holdPosition)
             Serial.print(ledAboveHoldPosition);
 
             // Light LED above hold
-            neoPixel.SetPixelColor(ledAboveHoldPosition * NEOPIXEL_LED_OFFSET, white);
+            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET] = white;
+            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET].subtractFromRGB((1 - NEOPIXEL_BRIGHTNESS_ABOVE_HOLD) * 255);
         }
     }
 
     Serial.println();
-    neoPixel.Show();
+    FastLED.show();
 }
 
 /**
@@ -284,8 +285,8 @@ void oledPrintln(String str, bool useLastLine = false)
  */
 void neoPixelReset()
 {
-    neoPixel.ClearTo(black);
-    neoPixel.Show();
+    FastLED.clear();
+    FastLED.show();
     bitmapNeoPixelState = false;
 }
 
@@ -371,7 +372,7 @@ void processProblemMessage()
  */
 void neoPixelCheck()
 {
-    RgbColor colors[] = {red, green, blue};
+    CRGB colors[] = {red, green, blue};
     int fadeDelay = 25;
 
     if (NEOPIXEL_CHECK1_AT_BOOT)
@@ -379,16 +380,12 @@ void neoPixelCheck()
         bitmapNeoPixelState = true;
 
         // light each leds one by one
-        for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(RgbColor); indexColor++)
+        for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(CRGB); indexColor++)
         {
-            neoPixel.SetPixelColor(0, colors[indexColor]);
-            neoPixel.Show();
-            delay(fadeDelay);
-            oledRefresh();
             for (int i = 0; i < ledsCount; i++)
             {
-                neoPixel.ShiftRight(1 * NEOPIXEL_LED_OFFSET);
-                neoPixel.Show();
+                leds[i * NEOPIXEL_LED_OFFSET] = colors[indexColor];
+                FastLED.show();
                 delay(fadeDelay);
                 oledRefresh();
             }
@@ -402,12 +399,12 @@ void neoPixelCheck()
         bitmapNeoPixelState = true;
 
         // blink each color
-        for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(RgbColor); indexColor++)
+        for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(CRGB); indexColor++)
         {
             delay(fadeDelay * 50);
             for (int indexLed = 0; indexLed < ledsCount; indexLed++)
-                neoPixel.SetPixelColor(indexLed * NEOPIXEL_LED_OFFSET, colors[indexColor]);
-            neoPixel.Show();
+                leds[indexLed * NEOPIXEL_LED_OFFSET] = colors[indexColor];
+            FastLED.show();
             delay(fadeDelay * 50);
             neoPixelReset();
             oledRefresh();
@@ -437,8 +434,10 @@ void setup()
     bleSerial.begin(bleName);
 
     // NeoPixel setup
-    neoPixel.Begin();
-    neoPixel.Show();
+    FastLED.addLeds<WS2811, NEOPIXEL_PIN>(leds, ledsCount * NEOPIXEL_LED_OFFSET);
+    FastLED.setBrightness(NEOPIXEL_BRIGHTNESS * 255);
+    FastLED.clear();
+    FastLED.show();
 
     oledPrintln("..| LEDS check");
     neoPixelCheck();

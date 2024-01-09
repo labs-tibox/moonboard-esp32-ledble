@@ -1,6 +1,6 @@
-#include <BLESerial.h>
 #include <Arduino.h>
-#include <NeoPixelBus.h>
+#include <BLESerial.h>
+#include <FastLED.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -17,7 +17,7 @@ const bool NEOPIXEL_CHECK1_AT_BOOT = false;       // Test the neo pixel led syse
 const bool NEOPIXEL_CHECK2_AT_BOOT = false;       // Test the neo pixel led sysem at boot if true
 const float NEOPIXEL_BRIGHTNESS = 0.8;            // Neopixel brightness setting (0 to 1)
 const float NEOPIXEL_BRIGHTNESS_ABOVE_HOLD = 0.1; // Neopixel brightness setting (0 to 1)
-char bleName[] = "MoonBoard Okeypis";             // Bluetooth name displayed by the esp32 BLE
+char bleName[] = "MoonBoard";                     // Bluetooth name displayed by the esp32 BLE
 const bool OLED_ENABLED = true;                   // Enable or disable the oled screen
 
 // Constants
