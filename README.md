@@ -64,7 +64,7 @@ Just use https://javl.github.io/image2cpp/
 
 
 ## 🙏 Thanks
-All the heavy lifting in this project is done by two awesome libraries: [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) (for the LED string) and [BLESerial](https://github.com/iot-bus/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
+All the heavy lifting in this project is done by two awesome libraries: [FastLED](https://github.com/FastLED/FastLED) (for the LED string) and [BLESerial](https://github.com/James-NZ/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
 
 Thanks to the two following projects for inspiration and proving this kind of project was easly doable on Arduino chip:
 - [Moonboard LED sytem on Arduino NRF52](https://github.com/e-sr/moonboard_nrf52)
