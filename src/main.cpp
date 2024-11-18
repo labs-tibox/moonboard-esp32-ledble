@@ -373,7 +373,7 @@ void processProblemMessage()
 void neoPixelCheck()
 {
     CRGB colors[] = {red, green, blue};
-    int fadeDelay = 25;
+    int fadeDelay = 5;
 
     if (NEOPIXEL_CHECK1_AT_BOOT)
     {
@@ -401,11 +401,11 @@ void neoPixelCheck()
         // blink each color
         for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(CRGB); indexColor++)
         {
-            delay(fadeDelay * 50);
+            delay(fadeDelay * 100);
             for (int indexLed = 0; indexLed < ledsCount; indexLed++)
                 leds[indexLed * NEOPIXEL_LED_OFFSET] = colors[indexColor];
             FastLED.show();
-            delay(fadeDelay * 50);
+            delay(fadeDelay * 100);
             neoPixelReset();
             oledRefresh();
         }
