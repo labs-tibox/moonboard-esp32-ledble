@@ -367,7 +367,7 @@ void processProblemMessage()
 }
 
 /**
- * @brief Check LEDs by cycling through the colors red, green, blue, violet and then turning the LEDs off again
+ * @brief Check LEDs by cycling through the colors red, green, blue and then turning the LEDs off again
  *
  */
 void neoPixelCheck()
