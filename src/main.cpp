@@ -412,6 +412,156 @@ void neoPixelCheck()
     }
 }
 
+int coordinatesToPosition(char column, int row)
+{
+    int rows = boardRows;
+    char columns[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'};
+    int columnIndex = -1;
+    for (int i = 0; i < sizeof(columns) / sizeof(char); i++)
+    {
+        if (columns[i] == column)
+        {
+            columnIndex = i;
+            break;
+        }
+    }
+
+    int position = 0;
+    if (columnIndex % 2 == 0) // even column
+        position = (columnIndex * rows) + row - 1;
+    else if (columnIndex % 2 == 1) // odd column
+        position = (columnIndex * rows) + (rows - row);
+
+    // Serial.print("[COORDINATES 2 POSITION] -----------------");
+    // Serial.print(column);
+    // Serial.print(row);
+    // Serial.print(" -> ");
+    // Serial.println(position);
+    // // sleep(1);
+
+    return position;
+}
+
+/**
+ * @brief Check LEDs by cycling through the colors red, green, blue and then turning the LEDs off again
+ *
+ */
+void neoPixelChristmas()
+{
+    CRGB colors[] = {red, green, blue};
+    int fadeDelay = 5;
+
+    for (int j = 0; j < 2; j++)
+    {
+
+        for (int i = 0; i < ledsCount; i++)
+        {
+            leds[i * NEOPIXEL_LED_OFFSET] = j == 0 ? red : black;
+        }
+
+        leds[coordinatesToPosition('F', 12) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('E', 11) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 11) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 11) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('D', 10) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 10) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 10) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 10) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 10) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('E', 9) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 9) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 9) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('D', 8) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 8) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 8) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 8) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 8) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('C', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('D', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 7) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('I', 7) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('D', 6) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 6) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 6) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 6) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 6) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('C', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('D', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 5) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('I', 5) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('B', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('C', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('D', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('E', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('F', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('G', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('H', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('I', 4) * NEOPIXEL_LED_OFFSET] = green;
+        leds[coordinatesToPosition('J', 4) * NEOPIXEL_LED_OFFSET] = green;
+
+        leds[coordinatesToPosition('E', 3) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+        leds[coordinatesToPosition('F', 3) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+        leds[coordinatesToPosition('G', 3) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+
+        leds[coordinatesToPosition('E', 2) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+        leds[coordinatesToPosition('F', 2) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+        leds[coordinatesToPosition('G', 2) * NEOPIXEL_LED_OFFSET] = CRGB(86, 43, 5);
+
+        FastLED.show();
+        delay(fadeDelay * 100);
+    }
+
+    // if (NEOPIXEL_CHECK1_AT_BOOT)
+    // {
+    //     bitmapNeoPixelState = true;
+
+    //     // light each leds one by one
+    //     for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(CRGB); indexColor++)
+    //     {
+    //         for (int i = 0; i < ledsCount; i++)
+    //         {
+    //             leds[i * NEOPIXEL_LED_OFFSET] = colors[indexColor];
+    //             FastLED.show();
+    //             delay(fadeDelay);
+    //             oledRefresh();
+    //         }
+    //     }
+    //     neoPixelReset();
+    //     oledRefresh();
+    // }
+
+    // if (NEOPIXEL_CHECK2_AT_BOOT)
+    // {
+    //     bitmapNeoPixelState = true;
+
+    //     // blink each color
+    //     for (int indexColor = 0; indexColor < sizeof(colors) / sizeof(CRGB); indexColor++)
+    //     {
+    //         delay(fadeDelay * 100);
+    //         for (int indexLed = 0; indexLed < ledsCount; indexLed++)
+    //             leds[indexLed * NEOPIXEL_LED_OFFSET] = colors[indexColor];
+    //         FastLED.show();
+    //         delay(fadeDelay * 100);
+    //         neoPixelReset();
+    //         oledRefresh();
+    //     }
+    // }
+}
+
 /**
  * @brief Initialization
  *
@@ -440,7 +590,7 @@ void setup()
     FastLED.show();
 
     oledPrintln("..| LEDS check");
-    neoPixelCheck();
+    // neoPixelCheck();
     oledPrintln("OK| LEDS check", true);
     oledPrintln("OK| Setup");
     oledPrintln("Waiting APP");
@@ -511,4 +661,6 @@ void loop()
             }
         }
     }
+
+    neoPixelChristmas();
 }
