@@ -3,8 +3,6 @@
 #include <FastLED.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 
 // Select the board type your are using (comment / uncomment) the matching line below
 // #define MOONBOARD_STANDARD
@@ -18,7 +16,6 @@ const bool NEOPIXEL_CHECK2_AT_BOOT = true;        // Check2 the neo pixel led sy
 const float NEOPIXEL_BRIGHTNESS = 0.8;            // Neopixel brightness setting (0 to 1)
 const float NEOPIXEL_BRIGHTNESS_ABOVE_HOLD = 0.1; // Neopixel brightness setting (0 to 1)
 char bleName[] = "MoonBoard";                     // Bluetooth name displayed by the esp32 BLE
-const bool OLED_ENABLED = true;                   // Enable or disable the oled screen
 
 // Constants
 #if defined(MOONBOARD_MINI)

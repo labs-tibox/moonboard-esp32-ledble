@@ -1,19 +1,5 @@
 #include <config.h>
 
-// constants
-const int OLED_WIDTH = 128;    // OLED display width, in pixels
-const int OLED_HEIGHT = 64;    // OLED display height, in pixels
-const int OLED_RESET = -1;     // Reset pin # (or -1 if sharing Arduino reset pin)
-const int OLED_ADDRESS = 0x3C; // Use I2cScanner to find the address value
-const int BITMAP_HEIGHT = 14;  // Standard bitmap height
-const int BITMAP_WIDTH = 14;   // Standard bitmap width
-const unsigned char BITMAP_BLUETOOTH[] PROGMEM = {
-    0x01, 0x00, 0x01, 0x80, 0x01, 0xc0, 0x19, 0x60, 0x0d, 0x60, 0x07, 0xc0, 0x03, 0x80, 0x03, 0x80,
-    0x07, 0xc0, 0x0d, 0x60, 0x19, 0x60, 0x01, 0xc0, 0x01, 0x80, 0x01, 0x00};
-const unsigned char BITMAP_BULB[] PROGMEM = {
-    0x07, 0x00, 0x18, 0xc0, 0x32, 0x60, 0x24, 0x20, 0x28, 0x20, 0x20, 0x20, 0x20, 0x20, 0x10, 0x40,
-    0x08, 0x80, 0x0f, 0x80, 0x00, 0x00, 0x0f, 0x80, 0x0f, 0x80, 0x07, 0x00};
-
 // variables used inside project
 BLESerial bleSerial;                                               // BLE serial emulation
 String problemMessage = "";                                        // BLE buffer message
@@ -29,11 +15,8 @@ bool bitmapBleState = false;                                       // Used to se
 bool bitmapNeoPixelState = false;                                  // Used to set the Bulb bitmap
 bool bleConnected = false;                                         // Ble connected state
 bool setupState = false;                                           // Setup in progress
-String oledText[] = {"", "", "", "", "", ""};                      // Oled text buffer
-int oledTextIndex = -1;                                            // Current index of oled text buffer
 unsigned long previousMillisBle = 0;                               // Last time BLE bitmap was updated
 unsigned long previousMillisMoon = 0;                              // Last time Moon logo was updated
-Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET); // Oled screen object
 CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];                        // Neopixel leds use by FastLED
 
 // colors definitions
@@ -84,7 +67,7 @@ void neoPixelShowHold(char holdType, int holdPosition)
     bitmapNeoPixelState = true;
     Serial.print("[SERIAL] Light hold: ");
     Serial.print(holdType);
-    Serial.print(", ");
+    Serial.print(", position: ");
     Serial.print(holdPosition);
 
     String colorLabel = "BLACK";
@@ -121,7 +104,7 @@ void neoPixelShowHold(char holdType, int holdPosition)
         colorRgb = green;
         break;
     }
-    Serial.print(" color = ");
+    Serial.print(" color: ");
     Serial.print(colorLabel);
     Serial.print(", coordinates: ");
     String coordinates = positionToCoordinates(holdPosition);
@@ -164,119 +147,6 @@ void neoPixelShowHold(char holdType, int holdPosition)
 
     Serial.println();
     FastLED.show();
-}
-
-/**
- * @brief Update the oled screen
- *
- */
-void oledRefresh()
-{
-    if (!OLED_ENABLED)
-        return;
-
-    // Compute blink values
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillisBle >= 400)
-    {
-        previousMillisBle = currentMillis;
-        bitmapBleState = !bitmapBleState;
-    }
-    if (currentMillis - previousMillisMoon >= 250)
-    {
-        previousMillisMoon = currentMillis;
-        bitmapMoonState = bitmapMoonState == 0 ? 10 : bitmapMoonState - 1;
-    }
-
-    // Clear display
-    oled.clearDisplay();
-
-    //-----------------------------------------------------------------
-    // Actionbar area
-    //-----------------------------------------------------------------
-
-    // Moon logo
-    int moonX, moonY, moonR;
-    int moonX1, moonX2;
-    double phase = (double)bitmapMoonState / 10.0;
-    for (moonY = 0; moonY <= BITMAP_HEIGHT / 2; moonY++)
-    {
-        moonX = (int)(sqrt(BITMAP_HEIGHT / 2 * BITMAP_HEIGHT / 2 - moonY * moonY));
-        oled.drawLine(BITMAP_HEIGHT / 2 - moonX, moonY + BITMAP_HEIGHT / 2, moonX + BITMAP_HEIGHT / 2, moonY + BITMAP_HEIGHT / 2, SSD1306_WHITE);
-        oled.drawLine(BITMAP_HEIGHT / 2 - moonX, BITMAP_HEIGHT / 2 - moonY, moonX + BITMAP_HEIGHT / 2, BITMAP_HEIGHT / 2 - moonY, SSD1306_WHITE);
-
-        // Determine the edges of the lighted part of the moon
-        moonR = 2 * moonX;
-        if (phase < 0.5)
-        {
-            moonX1 = -moonX;
-            moonX2 = (int)(moonR - 2 * phase * moonR - moonX);
-        }
-        else
-        {
-            moonX1 = moonX;
-            moonX2 = (int)(moonX - 2 * phase * moonR + moonR);
-        }
-        // Draw the lighted part of the moon
-        oled.drawLine(moonX1 + BITMAP_HEIGHT / 2, BITMAP_HEIGHT / 2 - moonY, moonX2 + BITMAP_HEIGHT / 2, BITMAP_HEIGHT / 2 - moonY, SSD1306_BLACK);
-        oled.drawLine(moonX1 + BITMAP_HEIGHT / 2, moonY + BITMAP_HEIGHT / 2, moonX2 + BITMAP_HEIGHT / 2, moonY + BITMAP_HEIGHT / 2, SSD1306_BLACK);
-    }
-
-    // Moonboard and type text
-    oled.setTextSize(1);
-    oled.setTextColor(SSD1306_WHITE);
-    oled.setCursor(22, 0);
-    oled.println("MoonBoard");
-    oled.setCursor(22, 8);
-    oled.println(boardName);
-
-    // Bluetooth bitmap
-    if ((bitmapBleState || bleConnected) && setupState)
-        oled.drawBitmap(128 - BITMAP_WIDTH, 0, BITMAP_BLUETOOTH, BITMAP_WIDTH, BITMAP_HEIGHT, 1);
-
-    // Bulb bitmap
-    if (bitmapNeoPixelState)
-        oled.drawBitmap(128 - BITMAP_WIDTH - BITMAP_WIDTH, 0, BITMAP_BULB, BITMAP_WIDTH, BITMAP_WIDTH, 1);
-
-    //-----------------------------------------------------------------
-    // Text area
-    //-----------------------------------------------------------------
-    oled.setTextSize(1);
-    oled.setTextColor(SSD1306_WHITE);
-    oled.setCursor(0, 16);
-
-    for (size_t i = 0; i < 6; i++)
-        oled.println(oledText[i]);
-
-    // Show diplay
-    oled.display();
-}
-
-/**
- * @brief Print a new line to the text area of the oled screen
- *
- * @param str String to be added
- */
-void oledPrintln(String str, bool useLastLine = false)
-{
-    Serial.println("[OLED] " + str);
-    if (!OLED_ENABLED)
-        return;
-
-    if (!useLastLine)
-    {
-        if (oledTextIndex < 5)
-        {
-            oledTextIndex++;
-        }
-        else
-        {
-            for (size_t i = 0; i < oledTextIndex; i++)
-                oledText[i] = oledText[i + 1];
-        }
-    }
-    oledText[oledTextIndex] = str.substring(0, 20);
-    oledRefresh();
 }
 
 /**
@@ -347,7 +217,6 @@ void processProblemMessage()
     Serial.println("[SERIAL] -----------------");
     Serial.print("[SERIAL] Problem message: ");
     Serial.println(problemMessage);
-    oledPrintln("Coordinates:");
 
     humanReadableProblemMessage = ' ';
     int indexComma1 = 0;
@@ -363,7 +232,6 @@ void processProblemMessage()
         neoPixelShowHold(holdType, holdPosition);            // light the hold on the board
     }
     ledAboveHoldEnabled = false;
-    oledPrintln(humanReadableProblemMessage);
 }
 
 /**
@@ -387,11 +255,9 @@ void neoPixelCheck()
                 leds[i * NEOPIXEL_LED_OFFSET] = colors[indexColor];
                 FastLED.show();
                 delay(fadeDelay);
-                oledRefresh();
             }
         }
         neoPixelReset();
-        oledRefresh();
     }
 
     if (NEOPIXEL_CHECK2_AT_BOOT)
@@ -407,7 +273,6 @@ void neoPixelCheck()
             FastLED.show();
             delay(fadeDelay * 100);
             neoPixelReset();
-            oledRefresh();
         }
     }
 }
@@ -420,17 +285,8 @@ void setup()
 {
     Serial.begin(115200);
 
-    // oled setup
-    if (OLED_ENABLED)
-    {
-        oled.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
-        oled.cp437(true); // Use full 256 char 'Code Page 437' font
-        oled.clearDisplay();
-        oledRefresh();
-    }
-
     // ble setup
-    oledPrintln("OK| BLE init");
+    Serial.println("[SERIAL] OK| BLE init");
     bleSerial.begin(bleName);
 
     // NeoPixel setup
@@ -439,11 +295,11 @@ void setup()
     FastLED.clear();
     FastLED.show();
 
-    oledPrintln("..| LEDS check");
+    Serial.println("[SERIAL] ..| LEDS check");
     neoPixelCheck();
-    oledPrintln("OK| LEDS check", true);
-    oledPrintln("OK| Setup");
-    oledPrintln("Waiting APP");
+    Serial.println("[SERIAL] OK| LEDS check");
+    Serial.println("[SERIAL] OK| Setup");
+    Serial.println("[SERIAL] Waiting APP");
 
     setupState = true;
 }
@@ -455,7 +311,6 @@ void setup()
 void loop()
 {
     bleConnected = bleSerial.connected();
-    oledRefresh();
 
     if (bleConnected)
     {
