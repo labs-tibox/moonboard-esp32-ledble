@@ -29,39 +29,9 @@ You need:
 - You can't power all the strips LEDs only from the first strip, you'll shortly notice weak ligthness of the LEDs after 2 strips due to voltage drop
 - The solution is to inject power each 50 LEDs (so each strip) or each 100 LEDs (this is my setup) from the power supply
 
-
-## 📺 Screen (optional)
-
-### Hardware
- - Oled 0.96
- - Resolution: 128x64
- - Type: SSD1306
-
-### Pins wiring
-  -  (D)21 => SDA
-  -  (D)22 => SCL
-  -  3v3 => VCC
-  -  GND => GND
-
-### Settings:
-  - The screen used had the SCREEN_ADDRESS = 0x3C
-  - Use the following i2cScanner sktech here: https://playground.arduino.cc/Main/I2cScanner/
-
-### Bitmap conversion
-
-Just use https://javl.github.io/image2cpp/
- - Invert image colors = true
- - Code output format = Arduino code
-
-### Documention
- - https://projetsdiy.fr/ssd1306-mini-ecran-oled-i2c-128x64-arduino/
- - https://randomnerdtutorials.com/esp32-ssd1306-oled-display-arduino-ide/
-
-
 ## 🔌 Wiring
 
 ![Schematic](doc/sketch_bb.png)
-
 
 ## 🙏 Thanks
 All the heavy lifting in this project is done by two awesome libraries: [FastLED](https://github.com/FastLED/FastLED) (for the LED string) and [BLESerial](https://github.com/James-NZ/BLESerial) (for BLE functionality on ESP32). They make it possible to keep this project quite short, easy to understand, and easily maintainable.
