@@ -5,18 +5,19 @@
 #include <Wire.h>
 
 // Select the board type your are using (comment / uncomment) the matching line below
-// #define MOONBOARD_STANDARD
-#define MOONBOARD_MINI
+#define MOONBOARD_STANDARD
+// #define MOONBOARD_MINI
 
 // custom settings
-const int NEOPIXEL_LED_OFFSET = 2;                // Light every "NEOPIXEL_LED_OFFSET" LED of the LEDs strip
-const uint8_t NEOPIXEL_PIN = 2;                   // Use pin D2 (to be changed depending of your pin number used)
-const bool NEOPIXEL_CHECK1_AT_BOOT = true;        // Check1 the neo pixel led sysem at boot if true (led by led)
-const bool NEOPIXEL_CHECK2_AT_BOOT = true;        // Check2 the neo pixel led sysem at boot if true (blink each led)
-const float NEOPIXEL_BRIGHTNESS = 0.8;            // Neopixel brightness setting (0 to 1)
-const float NEOPIXEL_BRIGHTNESS_ABOVE_HOLD = 0.1; // Neopixel brightness setting (0 to 1)
-char bleName[] = "MoonBoard";                     // Bluetooth name displayed by the esp32 BLE
-
+const int NEOPIXEL_LED_OFFSET = 2;                 // Light every "NEOPIXEL_LED_OFFSET" LED of the LEDs strip
+const uint8_t NEOPIXEL_PIN = 2;                    // Use pin D2 (to be changed depending of your pin number used)
+const bool NEOPIXEL_CHECK1_AT_BOOT = true;         // Check1 the neo pixel led sysem at boot if true (led by led)
+const bool NEOPIXEL_CHECK2_AT_BOOT = true;         // Check2 the neo pixel led sysem at boot if true (blink each led)
+const bool NEOPIXEL_CHECK3_AT_BOOT = true;         // Check3 the neo pixel led sysem at boot if true (make heart and K+M)
+const float NEOPIXEL_BRIGHTNESS = 0.8;             // Neopixel brightness setting (0 to 1)
+const float NEOPIXEL_BRIGHTNESS_ABOVE_HOLD = 0.1;  // Neopixel brightness setting (0 to 1)
+char bleName[] = "MoonBoard from Kara and Marcel"; // Bluetooth name displayed by the esp32 BLE
+const uint16_t MAX_LEDS = 30;
 // Constants
 #if defined(MOONBOARD_MINI)
 const uint16_t ledsCount = 150; // Leds count

@@ -1,23 +1,29 @@
 #include <config.h>
 
 // variables used inside project
-BLESerial bleSerial;                                               // BLE serial emulation
-String problemMessage = "";                                        // BLE buffer message
-String humanReadableProblemMessage = "";                           // Problem human readable message
-bool problemMessageStarted = false;                                // Start indicator of problem message
-bool problemMessageEnded = false;                                  // End indicator of problem message
-String confMessage = "";                                           // BLE buffer conf message
-bool confMessageStarted = false;                                   // Start indicator of conf message
-bool confMessageEnded = false;                                     // End indicator of conf message
-bool ledAboveHoldEnabled = false;                                  // Enable the LED above the hold if possible
-int bitmapMoonState = 0;                                           // Used to set the Moon Logo
-bool bitmapBleState = false;                                       // Used to set the BLE bitmap
-bool bitmapNeoPixelState = false;                                  // Used to set the Bulb bitmap
-bool bleConnected = false;                                         // Ble connected state
-bool setupState = false;                                           // Setup in progress
-unsigned long previousMillisBle = 0;                               // Last time BLE bitmap was updated
-unsigned long previousMillisMoon = 0;                              // Last time Moon logo was updated
-CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];                        // Neopixel leds use by FastLED
+BLESerial bleSerial;                         // BLE serial emulation
+String problemMessage = "";                  // BLE buffer message
+String humanReadableProblemMessage = "";     // Problem human readable message
+bool problemMessageStarted = false;          // Start indicator of problem message
+bool problemMessageEnded = false;            // End indicator of problem message
+volatile bool backgroundLightEnabled = true; // End indicator of problem message
+String confMessage = "";                     // BLE buffer conf message
+bool confMessageStarted = false;             // Start indicator of conf message
+bool confMessageEnded = false;               // End indicator of conf message
+bool ledAboveHoldEnabled = false;            // Enable the LED above the hold if possible
+int bitmapMoonState = 0;                     // Used to set the Moon Logo
+bool bitmapBleState = false;                 // Used to set the BLE bitmap
+bool bitmapNeoPixelState = false;            // Used to set the Bulb bitmap
+bool bleConnected = false;                   // Ble connected state
+bool setupState = false;                     // Setup in progress
+unsigned long previousMillisBle = 0;         // Last time BLE bitmap was updated
+unsigned long previousMillisMoon = 0;        // Last time Moon logo was updated
+CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];  // Neopixel leds use by FastLED
+uint16_t prevCount = 0;                      // Number of active leds in the last Boulder
+uint16_t activeA[MAX_LEDS];
+uint16_t activeB[MAX_LEDS];
+uint16_t *nowActive = activeA;
+uint16_t *prevActive = activeB;
 
 // colors definitions
 CRGB red = CRGB(255, 0, 0);
@@ -25,7 +31,7 @@ CRGB green = CRGB(0, 255, 0);
 CRGB blue = CRGB(0, 0, 255);
 CRGB cyan = CRGB(0, 128, 128);
 CRGB magenta = CRGB(128, 0, 128);
-CRGB yellow = CRGB(128, 128, 0);
+CRGB yellow = CRGB(255, 200, 0);
 CRGB pink = CRGB(120, 50, 85);
 CRGB purple = CRGB(105, 0, 150);
 CRGB black = CRGB(0, 0, 0);
@@ -59,7 +65,7 @@ String positionToCoordinates(int position)
  * @brief Light the LEDs for a given hold
  *
  * @param holdType Hold type (S,P,E)
- * @param holdPosition Position of the mathcing LED
+ * @param holdPosition Position of the matching LED
  * @param ledAboveHoldEnabled Enable the LED above the hold if possible
  */
 void neoPixelShowHold(char holdType, int holdPosition)
@@ -80,16 +86,16 @@ void neoPixelShowHold(char holdType, int holdPosition)
         colorRgb = red;
         break;
     case 'F':
-        colorLabel = "CYAN";
-        colorRgb = cyan;
+        colorLabel = "YELLOW";
+        colorRgb = yellow;
         break;
     case 'L':
-        colorLabel = "PURPLE";
-        colorRgb = purple;
+        colorLabel = "BLUE";
+        colorRgb = blue;
         break;
     case 'M':
-        colorLabel = "PINK";
-        colorRgb = pink;
+        colorLabel = "BLUE";
+        colorRgb = blue;
         break;
     case 'P':
         colorLabel = "BLUE";
@@ -155,9 +161,33 @@ void neoPixelShowHold(char holdType, int holdPosition)
  */
 void neoPixelReset()
 {
-    FastLED.clear();
+    // FastLED.clear();
+    // Turn of leds that where on in the last frame
+    for (uint16_t i = 0; i < prevCount; i++)
+    {
+        leds[prevActive[i]] = CRGB::Black;
+    }
     FastLED.show();
     bitmapNeoPixelState = false;
+}
+
+/**
+ * @brief light background
+ *
+ */
+void light_background()
+{
+    Serial.println("[SERIAL] -----------------");
+    Serial.print("[SERIAL] light_background");
+
+    // make heart
+    int LEDS_TO_LIGHT[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197};
+    size_t n = sizeof(LEDS_TO_LIGHT) / sizeof(LEDS_TO_LIGHT[0]);
+
+    for (int i = 0; i < n; i++)
+    {
+        leds[LEDS_TO_LIGHT[i] * NEOPIXEL_LED_OFFSET + 1] = purple;
+    }
 }
 
 /**
@@ -230,7 +260,7 @@ void processProblemMessage()
         char holdType = holdMessage[0];                      // holdType is the first char of the string
         int holdPosition = holdMessage.substring(1).toInt(); // holdPosition start at second char of the string
         neoPixelShowHold(holdType, holdPosition);            // light the hold on the board
-    }
+        }
     ledAboveHoldEnabled = false;
 }
 
@@ -275,6 +305,66 @@ void neoPixelCheck()
             neoPixelReset();
         }
     }
+
+    if (NEOPIXEL_CHECK3_AT_BOOT)
+    {
+        bitmapNeoPixelState = true;
+
+        // make heart
+        int LEDS_TO_LIGHT[] = {10, 11, 12, 22, 26, 44, 50, 57, 64, 78, 85, 95, 102, 114, 121, 129, 136, 152, 158, 166, 170, 190, 191, 192};
+        size_t n = sizeof(LEDS_TO_LIGHT) / sizeof(LEDS_TO_LIGHT[0]);
+
+        for (int i = 0; i < n; i++)
+        {
+            printf("%d\n", LEDS_TO_LIGHT[i]);
+            leds[LEDS_TO_LIGHT[i] * NEOPIXEL_LED_OFFSET] = red;
+        }
+        FastLED.show();
+        delay(fadeDelay * 200);
+        neoPixelReset();
+
+        // make K+M
+        int LEDS_FOR_K[] = {5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 23, 26, 43, 49, 57, 66};
+        size_t nk = sizeof(LEDS_FOR_K) / sizeof(LEDS_FOR_K[0]);
+        int LEDS_FOR_PLUS[] = {61, 81, 82, 83, 97};
+        size_t np = sizeof(LEDS_FOR_PLUS) / sizeof(LEDS_FOR_PLUS[0]);
+        int LEDS_FOR_M[] = {113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 131, 154, 167, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194};
+        size_t nm = sizeof(LEDS_FOR_M) / sizeof(LEDS_FOR_M[0]);
+
+        for (int i = 0; i < nk; i++)
+        {
+            printf("%d\n", LEDS_FOR_K[i]);
+            leds[LEDS_FOR_K[i] * NEOPIXEL_LED_OFFSET] = yellow;
+        }
+
+        for (int i = 0; i < np; i++)
+        {
+            printf("%d\n", LEDS_FOR_PLUS[i]);
+            leds[LEDS_FOR_PLUS[i] * NEOPIXEL_LED_OFFSET] = white;
+        }
+
+        for (int i = 0; i < nm; i++)
+        {
+            printf("%d\n", LEDS_FOR_M[i]);
+            leds[LEDS_FOR_M[i] * NEOPIXEL_LED_OFFSET] = blue;
+        }
+        FastLED.show();
+        delay(fadeDelay * 200);
+        neoPixelReset();
+    }
+}
+
+void IRAM_ATTR isr()
+{
+    Serial.println("Button Pressed!");
+    if (backgroundLightEnabled)
+    {
+        backgroundLightEnabled = true;
+    }
+    else
+    {
+        backgroundLightEnabled = false;
+    }
 }
 
 /**
@@ -292,8 +382,12 @@ void setup()
     // NeoPixel setup
     FastLED.addLeds<WS2811, NEOPIXEL_PIN>(leds, ledsCount * NEOPIXEL_LED_OFFSET);
     FastLED.setBrightness(NEOPIXEL_BRIGHTNESS * 255);
+    FastLED.setCorrection(TypicalSMD5050);
     FastLED.clear();
     FastLED.show();
+
+    pinMode(0, INPUT_PULLUP);
+    attachInterrupt(0, isr, FALLING); // Triggers on LOW
 
     Serial.println("[SERIAL] ..| LEDS check");
     neoPixelCheck();
@@ -359,6 +453,10 @@ void loop()
             if (problemMessageEnded)
             {
                 neoPixelReset();
+                if (backgroundLightEnabled)
+                {
+                    light_background();
+                }
                 processProblemMessage();
                 problemMessage = "";
                 problemMessageStarted = false;
