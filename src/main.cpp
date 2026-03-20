@@ -20,8 +20,10 @@ unsigned long previousMillisBle = 0;         // Last time BLE bitmap was updated
 unsigned long previousMillisMoon = 0;        // Last time Moon logo was updated
 CRGB leds[ledsCount * NEOPIXEL_LED_OFFSET];  // Neopixel leds use by FastLED
 uint16_t prevCount = 0;                      // Number of active leds in the last Boulder
-uint16_t activeA[MAX_LEDS];
-uint16_t activeB[MAX_LEDS];
+uint16_t nowCount = 0;
+constexpr uint16_t MAX_ACTIVE_TRACKED = ledsCount * NEOPIXEL_LED_OFFSET;
+uint16_t activeA[MAX_ACTIVE_TRACKED];
+uint16_t activeB[MAX_ACTIVE_TRACKED];
 uint16_t *nowActive = activeA;
 uint16_t *prevActive = activeB;
 
@@ -62,6 +64,33 @@ String positionToCoordinates(int position)
 }
 
 /**
+ * @brief Track a LED index that has been lit in the current frame
+ *
+ * @param ledIndex physical index in leds[] buffer
+ */
+void trackActiveLed(uint16_t ledIndex)
+{
+    if (nowCount < MAX_ACTIVE_TRACKED)
+    {
+        nowActive[nowCount++] = ledIndex;
+    }
+}
+
+/**
+ * @brief Commit current frame and make it the previous frame for the next reset
+ *
+ */
+void finalizeActiveFrame()
+{
+    prevCount = nowCount;
+    nowCount = 0;
+
+    uint16_t *tmp = prevActive;
+    prevActive = nowActive;
+    nowActive = tmp;
+}
+
+/**
  * @brief Light the LEDs for a given hold
  *
  * @param holdType Hold type (S,P,E)
@@ -70,6 +99,13 @@ String positionToCoordinates(int position)
  */
 void neoPixelShowHold(char holdType, int holdPosition)
 {
+    if (holdPosition < 0 || holdPosition >= ledsCount)
+    {
+        Serial.print("[SERIAL] Invalid hold position: ");
+        Serial.println(holdPosition);
+        return;
+    }
+
     bitmapNeoPixelState = true;
     Serial.print("[SERIAL] Light hold: ");
     Serial.print(holdType);
@@ -119,7 +155,9 @@ void neoPixelShowHold(char holdType, int holdPosition)
     humanReadableProblemMessage.concat(' ');
 
     // Ligth Hold
-    leds[holdPosition * NEOPIXEL_LED_OFFSET] = colorRgb;
+    uint16_t holdLedIndex = holdPosition * NEOPIXEL_LED_OFFSET;
+    leds[holdLedIndex] = colorRgb;
+    trackActiveLed(holdLedIndex);
 
     // Find the LED position above the hold
     if (ledAboveHoldEnabled)
@@ -142,24 +180,28 @@ void neoPixelShowHold(char holdType, int holdPosition)
         if (gapLedAbove != 0 && gapLedAbove != 9)
         {
             ledAboveHoldPosition = holdPosition + gapLedAbove;
-            Serial.print(", led position above: ");
-            Serial.print(ledAboveHoldPosition);
+            if (ledAboveHoldPosition >= 0 && ledAboveHoldPosition < ledsCount)
+            {
+                Serial.print(", led position above: ");
+                Serial.print(ledAboveHoldPosition);
 
-            // Light LED above hold
-            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET] = white;
-            leds[ledAboveHoldPosition * NEOPIXEL_LED_OFFSET].subtractFromRGB((1 - NEOPIXEL_BRIGHTNESS_ABOVE_HOLD) * 255);
+                // Light LED above hold
+                uint16_t ledAboveIndex = ledAboveHoldPosition * NEOPIXEL_LED_OFFSET;
+                leds[ledAboveIndex] = white;
+                leds[ledAboveIndex].subtractFromRGB((1 - NEOPIXEL_BRIGHTNESS_ABOVE_HOLD) * 255);
+                trackActiveLed(ledAboveIndex);
+            }
         }
     }
 
     Serial.println();
-    FastLED.show();
 }
 
 /**
  * @brief Turn off all LEDs
  *
  */
-void neoPixelReset()
+void neoPixelReset(bool showNow = true)
 {
     // FastLED.clear();
     // Turn of leds that where on in the last frame
@@ -167,7 +209,32 @@ void neoPixelReset()
     {
         leds[prevActive[i]] = CRGB::Black;
     }
-    FastLED.show();
+
+    prevCount = 0;
+
+    if (showNow)
+    {
+        FastLED.show();
+    }
+
+    bitmapNeoPixelState = false;
+}
+
+/**
+ * @brief Turn off all LEDs, including static/background patterns
+ *
+ */
+void neoPixelResetAll(bool showNow = true)
+{
+    FastLED.clear();
+    prevCount = 0;
+    nowCount = 0;
+
+    if (showNow)
+    {
+        FastLED.show();
+    }
+
     bitmapNeoPixelState = false;
 }
 
@@ -191,6 +258,21 @@ void light_background()
 }
 
 /**
+ * @brief turn off background LEDs
+ *
+ */
+void clear_background()
+{
+    int LEDS_TO_LIGHT[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197};
+    size_t n = sizeof(LEDS_TO_LIGHT) / sizeof(LEDS_TO_LIGHT[0]);
+
+    for (int i = 0; i < n; i++)
+    {
+        leds[LEDS_TO_LIGHT[i] * NEOPIXEL_LED_OFFSET + 1] = black;
+    }
+}
+
+/**
  * @brief Process the configuration message
  *
  */
@@ -209,7 +291,7 @@ void processConfMessage()
     if (confMessage.indexOf("~Z*") != -1)
     {
         Serial.println("[SERIAL] Reset leds");
-        neoPixelReset();
+        neoPixelResetAll();
     }
 }
 
@@ -249,6 +331,8 @@ void processProblemMessage()
     Serial.println(problemMessage);
 
     humanReadableProblemMessage = ' ';
+    nowCount = 0;
+
     int indexComma1 = 0;
     int indexComma2 = 0;
     while (indexComma2 != -1)
@@ -260,7 +344,11 @@ void processProblemMessage()
         char holdType = holdMessage[0];                      // holdType is the first char of the string
         int holdPosition = holdMessage.substring(1).toInt(); // holdPosition start at second char of the string
         neoPixelShowHold(holdType, holdPosition);            // light the hold on the board
-        }
+    }
+
+    finalizeActiveFrame();
+    FastLED.show();
+
     ledAboveHoldEnabled = false;
 }
 
@@ -287,7 +375,7 @@ void neoPixelCheck()
                 delay(fadeDelay);
             }
         }
-        neoPixelReset();
+        neoPixelResetAll();
     }
 
     if (NEOPIXEL_CHECK2_AT_BOOT)
@@ -302,7 +390,7 @@ void neoPixelCheck()
                 leds[indexLed * NEOPIXEL_LED_OFFSET] = colors[indexColor];
             FastLED.show();
             delay(fadeDelay * 100);
-            neoPixelReset();
+            neoPixelResetAll();
         }
     }
 
@@ -321,7 +409,7 @@ void neoPixelCheck()
         }
         FastLED.show();
         delay(fadeDelay * 200);
-        neoPixelReset();
+        neoPixelResetAll();
 
         // make K+M
         int LEDS_FOR_K[] = {5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 23, 26, 43, 49, 57, 66};
@@ -350,21 +438,15 @@ void neoPixelCheck()
         }
         FastLED.show();
         delay(fadeDelay * 200);
-        neoPixelReset();
+        neoPixelResetAll();
     }
 }
 
 void IRAM_ATTR isr()
 {
     Serial.println("Button Pressed!");
-    if (backgroundLightEnabled)
-    {
-        backgroundLightEnabled = true;
-    }
-    else
-    {
-        backgroundLightEnabled = false;
-    }
+    backgroundLightEnabled = !backgroundLightEnabled;
+    Serial.printf("%d backgroundLightEnabled\n", backgroundLightEnabled);
 }
 
 /**
@@ -452,10 +534,14 @@ void loop()
             }
             if (problemMessageEnded)
             {
-                neoPixelReset();
+                neoPixelReset(false);
                 if (backgroundLightEnabled)
                 {
                     light_background();
+                }
+                else
+                {
+                    clear_background();
                 }
                 processProblemMessage();
                 problemMessage = "";
