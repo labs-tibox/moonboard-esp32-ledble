@@ -7,6 +7,7 @@ String humanReadableProblemMessage = "";     // Problem human readable message
 bool problemMessageStarted = false;          // Start indicator of problem message
 bool problemMessageEnded = false;            // End indicator of problem message
 volatile bool backgroundLightEnabled = true; // End indicator of problem message
+volatile bool backgroundTogglePending = false;
 String confMessage = "";                     // BLE buffer conf message
 bool confMessageStarted = false;             // Start indicator of conf message
 bool confMessageEnded = false;               // End indicator of conf message
@@ -446,7 +447,7 @@ void IRAM_ATTR isr()
 {
     Serial.println("Button Pressed!");
     backgroundLightEnabled = !backgroundLightEnabled;
-    Serial.printf("%d backgroundLightEnabled\n", backgroundLightEnabled);
+    backgroundTogglePending = true;
 }
 
 /**
@@ -486,6 +487,25 @@ void setup()
  */
 void loop()
 {
+    bool togglePending = false;
+    noInterrupts();
+    togglePending = backgroundTogglePending;
+    backgroundTogglePending = false;
+    interrupts();
+
+    if (togglePending)
+    {
+        if (backgroundLightEnabled)
+        {
+            light_background();
+        }
+        else
+        {
+            clear_background();
+        }
+        FastLED.show();
+    }
+
     bleConnected = bleSerial.connected();
 
     if (bleConnected)
